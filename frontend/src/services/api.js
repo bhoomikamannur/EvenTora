@@ -102,10 +102,18 @@ const ApiService = {
   deleteMedia: (clubId, mediaId) => api.delete(`/clubs/${clubId}/media/${mediaId}`),
 
   // THREADS
-  getThreads: (clubId) => api.get(`/clubs/${clubId}/threads`),
-  createThread: (clubId, data) => api.post(`/clubs/${clubId}/threads`, data),
-  addReply: (threadId, data) => api.post(`/threads/${threadId}/reply`, data),
-  deleteThread: (threadId) => api.delete(`/threads/${threadId}`),
+  // THREADS
+    getThreads: (clubId) => api.get(`/clubs/${clubId}/threads`),
+    getReportedThreads: (clubId) => api.get(`/clubs/${clubId}/threads/reported`),
+    createThread: (clubId, data) => api.post(`/clubs/${clubId}/threads`, data),
+    likeThread: (threadId) => api.post(`/threads/${threadId}/like`),
+    reportThread: (threadId, data) => api.post(`/threads/${threadId}/report`, data),
+    deleteThread: (threadId) => api.delete(`/threads/${threadId}`),
+    dismissReport: (threadId) => api.post(`/threads/${threadId}/dismiss-report`),
+    addReply: (threadId, data) => api.post(`/threads/${threadId}/reply`, data),
+    likeReply: (threadId, replyId) => api.post(`/threads/${threadId}/reply/${replyId}/like`),
+    reportReply: (threadId, replyId, data) => api.post(`/threads/${threadId}/reply/${replyId}/report`, data),
+    deleteReply: (threadId, replyId) => api.delete(`/threads/${threadId}/reply/${replyId}`),
 };
 
 export default ApiService;

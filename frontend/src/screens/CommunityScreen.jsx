@@ -4,6 +4,7 @@ import PostCard from '../components/posts/PostCard';
 import EventCard from '../components/events/EventCard';
 import MemberCard from '../components/members/MemberCard';
 import MediaCard from '../components/media/MediaCard';
+import ThreadList from '../components/threads/ThreadList';
 import AddPostModal from '../components/posts/AddPostModal';
 import AddEventModal from '../components/events/AddEventModal';
 import AddMemberModal from '../components/members/AddMemberModal';
@@ -13,6 +14,7 @@ import EditEventModal from '../components/events/EditEventModal';
 import EditMediaModal from '../components/media/EditMediaModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ApiService from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const CommunityScreen = ({
   clubId,
@@ -52,8 +54,9 @@ const CommunityScreen = ({
   
   const [members, setMembers] = useState([]);
   const [clubMedia, setClubMedia] = useState([]);
-  const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const { user } = useAuth();
 
   const club = clubs.find(c => c._id === clubId);
   const isJoined = joinedClubs.includes(clubId);
@@ -74,8 +77,6 @@ const CommunityScreen = ({
       await loadMembers();
     } else if (activeTab === 'media') {
       await loadMedia();
-    } else if (activeTab === 'threads') {
-      await loadThreads();
     }
   };
 
@@ -103,17 +104,7 @@ const CommunityScreen = ({
     }
   };
 
-  const loadThreads = async () => {
-    try {
-      setLoading(true);
-      const response = await ApiService.getThreads(clubId);
-      setThreads(response.data);
-    } catch (error) {
-      console.error('Failed to load threads:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handleAddPost = async (data) => {
     const result = await onPostCreated(data);
@@ -484,34 +475,12 @@ const CommunityScreen = ({
             ) : loading ? (
               <LoadingSpinner message="Loading threads..." />
             ) : (
-              <div className="space-y-3">
-                <button 
-                  className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition hover:opacity-90" 
-                  style={{ background: club.color }}
-                >
-                  <Plus className="w-5 h-5" /> New Thread
-                </button>
-                {threads.length > 0 ? (
-                  threads.map(thread => (
-                    <div key={thread._id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center flex-shrink-0">
-                          👤
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-sm text-gray-900">{thread.author}</h4>
-                          <p className="text-gray-700 mt-1">{thread.content}</p>
-                          <p className="text-xs text-gray-500 mt-2">{thread.timestamp}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-12 bg-white rounded-xl">
-                    <p className="text-gray-500">No threads yet. Start a conversation!</p>
-                  </div>
-                )}
-              </div>
+              <ThreadList 
+                clubId={clubId}
+                currentUserId={user?._id}
+                clubColor={club.color}
+                isAdmin={isAdmin}
+              />
             )}
           </div>
         )}

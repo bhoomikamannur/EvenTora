@@ -27,10 +27,12 @@ app.use('/api/events', require('./src/routes/events'));
 const memberRoutes = require('./src/routes/members');
 const mediaRoutes = require('./src/routes/media');
 const threadRoutes = require('./src/routes/threads');
+const threadActionsRoutes = require('./src/routes/threadactions');
 
 app.use('/api/clubs/:clubId/members', memberRoutes);
 app.use('/api/clubs/:clubId/media', mediaRoutes);
 app.use('/api/clubs/:clubId/threads', threadRoutes);
+app.use('/api/threads', threadActionsRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
