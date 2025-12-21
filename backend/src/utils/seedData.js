@@ -40,7 +40,7 @@ const seedDatabase = async () => {
     const createdClubs = await Club.insertMany(clubs);
     console.log(`✅ Created ${createdClubs.length} clubs`);
 
-    // Create admin user
+    // Create admin user - Tech Club
     const adminUser = await User.create({
       email: 'admin@iiitdwd.ac.in',
       password: 'admin123',
@@ -49,9 +49,31 @@ const seedDatabase = async () => {
       adminClubId: createdClubs[0]._id,
       joinedClubs: [createdClubs[0]._id]
     });
-    console.log('✅ Created admin user');
+    console.log('✅ Created Tech Club admin');
 
-    // Create student user
+    // Create Dynamight admin
+    const dynamightAdmin = await User.create({
+      email: 'dynamight@iiitdwd.ac.in',
+      password: 'dynamight123',
+      name: 'Dynamight Admin',
+      userType: 'admin',
+      adminClubId: createdClubs[7]._id,
+      joinedClubs: [createdClubs[7]._id]
+    });
+    console.log('✅ Created Dynamight admin');
+
+    // Create Music Club admin
+    const musicAdmin = await User.create({
+      email: 'musicclub@iiitdwd.ac.in',
+      password: 'music123',
+      name: 'Music Club Admin',
+      userType: 'admin',
+      adminClubId: createdClubs[6]._id,
+      joinedClubs: [createdClubs[6]._id]
+    });
+    console.log('✅ Created Music Club admin');
+
+    // Create student user 1
     const studentUser = await User.create({
       email: 'student@iiitdwd.ac.in',
       password: 'student123',
@@ -59,7 +81,17 @@ const seedDatabase = async () => {
       userType: 'student',
       joinedClubs: [createdClubs[0]._id, createdClubs[1]._id, createdClubs[5]._id]
     });
-    console.log('✅ Created student user');
+    console.log('✅ Created student 1');
+
+    // Create student user 2
+    const studentUser2 = await User.create({
+      email: 'student2@iiitdwd.ac.in',
+      password: 'student456',
+      name: 'Sarah Smith',
+      userType: 'student',
+      joinedClubs: [createdClubs[2]._id, createdClubs[6]._id, createdClubs[8]._id]
+    });
+    console.log('✅ Created student 2');
 
     // Create sample posts
     const posts = [

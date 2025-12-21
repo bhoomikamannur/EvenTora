@@ -10,7 +10,7 @@ const LoginScreen = () => {
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
-    if (!email || (userType === 'admin' && !password)) {
+    if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
@@ -74,15 +74,13 @@ const LoginScreen = () => {
             className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400" 
           />
           
-          {userType === 'admin' && (
-            <input 
-              type="password" 
-              placeholder="Password"
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400" 
-            />
-          )}
+          <input 
+            type="password" 
+            placeholder="Password"
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400" 
+          />
           
           <button 
             onClick={handleLogin}
