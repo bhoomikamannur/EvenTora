@@ -40,43 +40,32 @@ const seedDatabase = async () => {
     const createdClubs = await Club.insertMany(clubs);
     console.log(`✅ Created ${createdClubs.length} clubs`);
 
-    // Create admin user - Tech Club
-    const adminUser = await User.create({
-      email: 'admin@iiitdwd.ac.in',
-      password: 'admin123',
-      name: 'Tech Club Admin',
-      userType: 'admin',
-      adminClubId: createdClubs[0]._id,
-      joinedClubs: [createdClubs[0]._id]
-    });
-    console.log('✅ Created Tech Club admin');
-
-    // Create Dynamight admin
-    const dynamightAdmin = await User.create({
-      email: 'dynamight@iiitdwd.ac.in',
-      password: 'dynamight123',
-      name: 'Dynamight Admin',
-      userType: 'admin',
-      adminClubId: createdClubs[7]._id,
-      joinedClubs: [createdClubs[7]._id]
-    });
-    console.log('✅ Created Dynamight admin');
-
-    // Create Music Club admin
-    const musicAdmin = await User.create({
-      email: 'musicclub@iiitdwd.ac.in',
-      password: 'music123',
-      name: 'Music Club Admin',
-      userType: 'admin',
-      adminClubId: createdClubs[6]._id,
-      joinedClubs: [createdClubs[6]._id]
-    });
-    console.log('✅ Created Music Club admin');
+    // Create admin users - one for each club
+    const adminUsers = [];
+    const clubNames = ['Tech', 'Robotics', 'AIML', 'CyberSec', 'WebDev', 'Drama', 'Music', 'Dance', 'Photo', 'Art'];
+    
+    for (let i = 0; i < createdClubs.length; i++) {
+      const club = createdClubs[i];
+      const shortName = clubNames[i];
+      const adminUser = await User.create({
+        email: `${shortName.toLowerCase()}@iiitdwd.ac.in`,
+        password: `${shortName.toLowerCase()}123`,
+        username: `${shortName.toLowerCase()}_admin`,
+        name: `${club.name} Admin`,
+        userType: 'admin',
+        adminClubId: club._id,
+        joinedClubs: [club._id]
+      });
+      adminUsers.push(adminUser);
+      console.log(`✅ Created admin for ${club.name}`);
+      console.log(`   Email: ${adminUser.email}, Password: ${shortName.toLowerCase()}123`);
+    }
 
     // Create student user 1
     const studentUser = await User.create({
       email: 'student@iiitdwd.ac.in',
       password: 'student123',
+      username: 'johndoe',
       name: 'John Doe',
       userType: 'student',
       joinedClubs: [createdClubs[0]._id, createdClubs[1]._id, createdClubs[5]._id]
@@ -87,6 +76,7 @@ const seedDatabase = async () => {
     const studentUser2 = await User.create({
       email: 'student2@iiitdwd.ac.in',
       password: 'student456',
+      username: 'sarahsmith',
       name: 'Sarah Smith',
       userType: 'student',
       joinedClubs: [createdClubs[2]._id, createdClubs[6]._id, createdClubs[8]._id]
@@ -101,7 +91,7 @@ const seedDatabase = async () => {
         caption: 'Congratulations to Team Alpha for winning first place! Amazing projects from all teams.',
         images: ['https://via.placeholder.com/600x400/ab83c3/ffffff?text=Hackathon+Winners'],
         author: 'Tech Club',
-        authorId: adminUser._id,
+        authorId: adminUsers[0]._id,
         likes: 124
       },
       {
@@ -110,7 +100,7 @@ const seedDatabase = async () => {
         caption: 'Our annual Shakespeare performance was a huge success! Thank you to everyone who attended.',
         images: ['https://via.placeholder.com/600x400/ff85b4/ffffff?text=Hamlet+Show'],
         author: 'Drama Society',
-        authorId: adminUser._id,
+        authorId: adminUsers[5]._id,
         likes: 89
       }
     ];

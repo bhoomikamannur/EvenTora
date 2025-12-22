@@ -48,12 +48,13 @@ exports.createThread = async (req, res) => {
     const thread = await Thread.create({
       clubId: req.params.clubId,
       author: req.user.name,
+      username: req.user.username,
       userId: req.user._id,
       content: content.trim()
     });
     
     const populatedThread = await Thread.findById(thread._id)
-      .populate('userId', 'name');
+      .populate('userId', 'name username');
     
     res.status(201).json(populatedThread);
   } catch (error) {
@@ -117,6 +118,7 @@ exports.addReply = async (req, res) => {
     const reply = {
       userId: req.user._id,
       author: req.user.name,
+      username: req.user.username,
       content: content.trim()
     };
     
@@ -124,7 +126,7 @@ exports.addReply = async (req, res) => {
     await thread.save();
     
     const populatedThread = await Thread.findById(thread._id)
-      .populate('userId', 'name');
+      .populate('userId', 'name username');
     
     res.status(201).json(populatedThread);
   } catch (error) {

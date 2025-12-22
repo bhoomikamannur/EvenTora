@@ -103,6 +103,11 @@ exports.joinClub = async (req, res) => {
     if (!club) {
       return res.status(404).json({ message: 'Club not found' });
     }
+
+    // Admins cannot join clubs (they can only manage their assigned club)
+    if (user.userType === 'admin') {
+      return res.status(403).json({ message: 'Admins cannot join communities. You can only manage your assigned club.' });
+    }
     
     // Check if already joined
     if (user.joinedClubs.includes(club._id)) {
@@ -116,8 +121,9 @@ exports.joinClub = async (req, res) => {
     // Increment club member count
     club.communityMembers += 1;
     await club.save();
-    
-    res.json({ message: 'Joined club successfully', club });
+
+    const updatedUser = await User.findById(user._id).populate('joinedClubs');
+    res.json({ message: 'Joined club successfully', user: updatedUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

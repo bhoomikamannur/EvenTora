@@ -8,23 +8,35 @@ const generateToken = (id) => {
   });
 };
 
-// @desc    Register user
+// @desc    Register user (Student signup)
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { email, password, name, userType, adminClubId } = req.body;
+    const { email, password, username, name, userType, adminClubId } = req.body;
 
-    // Check if user exists
+    // Validate email domain
+    if (!email.endsWith('@iiitdwd.ac.in')) {
+      return res.status(400).json({ message: 'Please use your IIIT Dharwad email (@iiitdwd.ac.in)' });
+    }
+
+    // Check if user exists by email
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    // Check if username is taken
+    const usernameExists = await User.findOne({ username: username.toLowerCase() });
+    if (usernameExists) {
+      return res.status(400).json({ message: 'Username already taken' });
     }
 
     // Create user
     const user = await User.create({
       email,
       password,
+      username: username.toLowerCase(),
       name,
       userType: userType || 'student',
       adminClubId: userType === 'admin' ? adminClubId : null
@@ -34,6 +46,7 @@ exports.register = async (req, res) => {
     res.status(201).json({
       _id: user._id,
       name: user.name,
+      username: user.username,
       email: user.email,
       userType: user.userType,
       adminClubId: user.adminClubId,
@@ -72,6 +85,7 @@ exports.login = async (req, res) => {
     res.json({
       _id: user._id,
       name: user.name,
+      username: user.username,
       email: user.email,
       userType: user.userType,
       adminClubId: user.adminClubId,
@@ -110,6 +124,18 @@ exports.updateProfile = async (req, res) => {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
       
+      if (req.body.username) {
+        // Check if new username is already taken
+        const existingUser = await User.findOne({ 
+          username: req.body.username.toLowerCase(),
+          _id: { $ne: req.user._id }
+        });
+        if (existingUser) {
+          return res.status(400).json({ message: 'Username already taken' });
+        }
+        user.username = req.body.username.toLowerCase();
+      }
+      
       if (req.body.password) {
         user.password = req.body.password;
       }
@@ -119,6 +145,7 @@ exports.updateProfile = async (req, res) => {
       res.json({
         _id: updatedUser._id,
         name: updatedUser.name,
+        username: updatedUser.username,
         email: updatedUser.email,
         userType: updatedUser.userType,
         token: generateToken(updatedUser._id)

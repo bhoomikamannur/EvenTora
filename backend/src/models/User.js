@@ -7,16 +7,26 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Email is required'],
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
+    match: [/@iiitdwd\.ac\.in$/, 'Please use your IIIT Dharwad email (@iiitdwd.ac.in)']
   },
   password: {
     type: String,
     required: [true, 'Password is required'],
     minlength: 6
   },
+  username: {
+    type: String,
+    required: [true, 'Username is required'],
+    unique: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 20,
+    match: [/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores']
+  },
   name: {
     type: String,
-    required: true
+    required: [true, 'Full name is required']
   },
   userType: {
     type: String,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import SignupScreen from './SignupScreen';
 
 const LoginScreen = () => {
   const { login } = useAuth();
@@ -8,6 +9,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSignup, setShowSignup] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -26,6 +28,10 @@ const LoginScreen = () => {
     
     setLoading(false);
   };
+
+  if (showSignup) {
+    return <SignupScreen onSwitchToLogin={() => setShowSignup(false)} />;
+  }
 
   return (
     <div 
@@ -92,10 +98,44 @@ const LoginScreen = () => {
           </button>
         </div>
 
+        {/* Sign Up for Students */}
+        {userType === 'student' && (
+          <div className="mt-6 text-center">
+            <p className="text-gray-600 mb-3">Don't have an account?</p>
+            <button
+              onClick={() => setShowSignup(true)}
+              className="w-full py-3 rounded-xl font-semibold text-white transition"
+              style={{ background: 'linear-gradient(135deg, #86c6fd 0%, #ab83c3 100%)' }}
+            >
+              Create Account
+            </button>
+          </div>
+        )}
+
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Demo Credentials:</p>
-          <p className="mt-2">Student: student@iiitdwd.ac.in</p>
-          <p>Admin: admin@iiitdwd.ac.in / admin123</p>
+          <p className="font-semibold mb-2">📋 Demo Credentials:</p>
+          
+          {userType === 'student' ? (
+            <>
+              <p className="mb-1"><strong>Student:</strong></p>
+              <p>student@iiitdwd.ac.in</p>
+              <p>Password: student123</p>
+            </>
+          ) : (
+            <>
+              <p className="mb-1"><strong>Tech Club Admin:</strong></p>
+              <p>admin@iiitdwd.ac.in</p>
+              <p className="mb-2">Password: admin123</p>
+
+              <p className="mb-1"><strong>Music Club Admin:</strong></p>
+              <p>musicclub@iiitdwd.ac.in</p>
+              <p className="mb-2">Password: music123</p>
+
+              <p className="mb-1"><strong>Dance Crew Admin:</strong></p>
+              <p>dynamight@iiitdwd.ac.in</p>
+              <p>Password: dynamight123</p>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -54,7 +54,7 @@ const ThreadCard = ({
           <div className="flex items-center justify-between mb-2">
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-sm text-gray-900">{item.author}</h4>
+                <h4 className="font-semibold text-sm text-gray-900">{item.username}</h4>
                 {item.isReported && isAdmin && (
                   <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
                     Reported ({item.reports?.length || 0})

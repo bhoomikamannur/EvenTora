@@ -286,15 +286,21 @@ const CommunityScreen = ({
       <div className="text-center mt-12 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-1">{club.name}</h2>
         <p className="text-gray-600 mb-4">{club.communityMembers} members</p>
-        <button 
-          onClick={() => onJoin(clubId)} 
-          className={`px-8 py-3 rounded-xl font-semibold transition hover:opacity-90 ${
-            isJoined ? 'bg-gray-200 text-gray-700' : 'text-white'
-          }`}
-          style={!isJoined ? { background: club.color } : {}}
-        >
-          {isJoined ? '✓ Joined' : 'Join Community'}
-        </button>
+        {user?.userType === 'admin' && user?.adminClubId === clubId ? (
+          <div className="px-8 py-3 rounded-xl font-semibold bg-green-100 text-green-700">
+            🎯 You are managing this community
+          </div>
+        ) : (
+          <button 
+            onClick={() => onJoin(clubId)} 
+            className={`px-8 py-3 rounded-xl font-semibold transition hover:opacity-90 ${
+              isJoined ? 'bg-gray-200 text-gray-700' : 'text-white'
+            }`}
+            style={!isJoined ? { background: club.color } : {}}
+          >
+            {isJoined ? '✓ Joined' : 'Join Community'}
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
