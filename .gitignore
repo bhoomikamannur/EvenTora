@@ -1,1 +1,4 @@
 node_modules/
+backend/.env
+frontend/.env
+VALIDATION_GUIDE.md
