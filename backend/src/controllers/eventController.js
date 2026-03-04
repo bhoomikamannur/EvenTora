@@ -4,6 +4,7 @@ const Club = require('../models/Club');
 const { ERROR_MESSAGES, HTTP_STATUS } = require('../utils/constants');
 const validators = require('../utils/validators');
 const ApiResponse = require('../utils/apiResponse');
+const redisClient = require('../config/redis');
 
 // @desc    Get all events
 // @route   GET /api/events
@@ -15,6 +16,26 @@ exports.getAllEvents = async (req, res, next) => {
     const pageNum = Math.max(1, parseInt(page));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
     const skip = (pageNum - 1) * limitNum;
+
+    // Create cache key from query parameters
+    const cacheKey = `events:${clubId || 'all'}:${date || ''}:${month || ''}:${pageNum}:${limitNum}`;
+
+    try {
+      // Check Redis cache first
+      const cachedData = await redisClient.get(cacheKey);
+      if (cachedData) {
+        console.log(`✅ Cache hit for key: ${cacheKey}`);
+        return res.json({
+          success: true,
+          data: JSON.parse(cachedData),
+          source: 'cache',
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (redisError) {
+      console.warn('⚠️ Redis error during cache retrieval:', redisError);
+      // Continue with normal flow if Redis fails
+    }
 
     let query = {};
     
@@ -47,6 +68,24 @@ exports.getAllEvents = async (req, res, next) => {
       .sort({ date: 1, time: 1 })
       .skip(skip)
       .limit(limitNum);
+    
+    // Build response data
+    const responseData = {
+      events,
+      total,
+      currentPage: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+      limit: limitNum
+    };
+
+    // Store result in Redis cache for 60 seconds
+    try {
+      await redisClient.setEx(cacheKey, 60, JSON.stringify(responseData));
+      console.log(`📦 Cached data for key: ${cacheKey} (TTL: 60s)`);
+    } catch (redisError) {
+      console.warn('⚠️ Redis error during cache storage:', redisError);
+      // Continue anyway if Redis fails
+    }
     
     return ApiResponse.paginated(res, events, total, pageNum, limitNum, 'Events fetched successfully');
   } catch (error) {

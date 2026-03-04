@@ -59,7 +59,11 @@ const CommunityScreen = ({
   const { user } = useAuth();
 
   const club = clubs.find(c => c._id === clubId);
-  const isJoined = joinedClubs.includes(clubId);
+  // Check if clubId is in joinedClubs array - handle both string IDs and objects
+  const isJoined = joinedClubs && joinedClubs.some(id => {
+    return (typeof id === 'string') ? id === clubId : id._id === clubId;
+  });
+  
   const clubPosts = posts.filter(p => p.clubId === clubId || p.clubId?._id === clubId);
   const clubEvents = events.filter(e => e.clubId === clubId || e.clubId?._id === clubId);
 
@@ -67,6 +71,7 @@ const CommunityScreen = ({
   const lockedTabs = ['members', 'media', 'threads'];
 
   useEffect(() => {
+    console.log(`🔍 CommunityScreen - clubId: ${clubId}, isJoined: ${isJoined}, joinedClubs:`, joinedClubs);
     if (clubId && isJoined) {
       loadClubData();
     }

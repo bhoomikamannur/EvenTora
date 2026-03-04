@@ -215,9 +215,14 @@ exports.joinClub = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
 
-    // Admins cannot join clubs
-    if (user.userType === 'admin') {
-      return ApiResponse.forbidden(res, 'Admins cannot join communities. You can only manage your assigned club.');
+    // Admins cannot join clubs they don't manage
+    if (user.userType === 'admin' && user.adminClubId?.toString() !== id) {
+      return ApiResponse.forbidden(res, 'Admins can only join their assigned club. You are managing a different community.');
+    }
+
+    // Admins should not join their own admin club (they manage it)
+    if (user.userType === 'admin' && user.adminClubId?.toString() === id) {
+      return ApiResponse.badRequest(res, 'You manage this community. You do not need to join it.');
     }
     
     // Check if already joined

@@ -4,6 +4,7 @@ import SplashScreen from './components/common/SplashScreen';
 import LoginScreen from './components/common/LoginScreen';
 import NavBar from './components/common/NavBar';
 import BottomNav from './components/common/BottomNav';
+import Toast from './components/common/Toast';
 import HomeScreen from './screens/HomeScreen';
 import CommunitiesScreen from './screens/CommunitiesScreen';
 import CommunityScreen from './screens/CommunityScreen';
@@ -23,6 +24,7 @@ const AppContent = () => {
   const [selectedClub, setSelectedClub] = useState(null);
   const [joinedClubs, setJoinedClubs] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
+  const [toast, setToast] = useState(null);
   const [rsvpEvents, setRsvpEvents] = useState([]);
   const [media, setMedia] = useState([]);
 
@@ -41,20 +43,43 @@ const AppContent = () => {
   const loadUserData = async () => {
     try {
       const userData = await ApiService.getMe();
-      setJoinedClubs(userData.data.joinedClubs.map(c => c._id || c));
-      setLikedPosts(userData.data.likedPosts || []);
-      setRsvpEvents(userData.data.rsvpEvents || []);
+      console.log('📦 User data loaded:', userData.data);
+      
+      // Extract joined clubs - handle both array of objects and array of IDs
+      const clubs = userData.data?.joinedClubs || [];
+      const clubIds = Array.isArray(clubs) 
+        ? clubs.map(c => (typeof c === 'object' ? c._id : c)).filter(Boolean)
+        : [];
+        
+      console.log('🏢 Extracted club IDs:', clubIds);
+      setJoinedClubs(clubIds);
+      setLikedPosts(userData.data?.likedPosts || []);
+      setRsvpEvents(userData.data?.rsvpEvents || []);
     } catch (error) {
       console.error('Failed to load user data:', error);
     }
   };
 
   const handleJoinClub = async (clubId) => {
-    if (!joinedClubs.includes(clubId)) {
+    const alreadyJoined = joinedClubs.some(id => {
+      return (typeof id === 'string') ? id === clubId : id._id === clubId;
+    });
+    
+    if (!alreadyJoined) {
       const result = await joinClub(clubId);
       if (result.success) {
-        setJoinedClubs([...joinedClubs, clubId]);
+        console.log('✅ Join successful, reloading user data...');
+        setToast({ type: 'success', message: '✅ Joining community, please wait...' });
+        // Reload user data from backend to get the fresh joined clubs list
+        setTimeout(async () => {
+          await loadUserData();
+          setToast({ type: 'success', message: '✅ Successfully joined! Refreshing...' });
+        }, 500);
+      } else {
+        setToast({ type: 'error', message: `❌ ${result.error}` });
       }
+    } else {
+      setToast({ type: 'info', message: '✅ Already a member of this community!' });
     }
   };
 
@@ -151,6 +176,7 @@ const AppContent = () => {
       <div className="max-w-4xl mx-auto px-4 py-20 pb-24">
         {selectedClub ? (
           <CommunityScreen
+            key={`community-${selectedClub}-${joinedClubs.length}`}
             clubId={selectedClub}
             onBack={() => setSelectedClub(null)}
             joinedClubs={joinedClubs}
@@ -216,6 +242,15 @@ const AppContent = () => {
 
       {!selectedClub && (
         <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+          duration={3000}
+        />
       )}
     </div>
   );

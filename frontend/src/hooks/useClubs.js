@@ -28,34 +28,59 @@ export const useClubs = () => {
 
   const joinClub = async (clubId) => {
     try {
-      await ApiService.joinClub(clubId);
+      const response = await ApiService.joinClub(clubId);
+      console.log('✅ Join response:', response.data);
+      
+      // Update club member count
       setClubs(clubs.map(c => 
         c._id === clubId 
-          ? { ...c, communityMembers: c.communityMembers + 1 } 
+          ? { ...c, communityMembers: (c.communityMembers || 0) + 1 } 
           : c
       ));
-      return { success: true };
+      
+      // Extract joined clubs from the response
+      const userJoinedClubs = response.data?.user?.joinedClubs || [];
+      const joinedClubIds = Array.isArray(userJoinedClubs)
+        ? userJoinedClubs.map(c => (typeof c === 'object' ? c._id : c)).filter(Boolean)
+        : [];
+      
+      console.log('🏢 Joined clubs from response:', joinedClubIds);
+      
+      return { 
+        success: true,
+        message: 'Successfully joined community!',
+        joinedClubs: joinedClubIds
+      };
     } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to join community. Please try again.';
+      console.error('Join club error:', errorMessage);
       return { 
         success: false, 
-        error: err.response?.data?.message || 'Failed to join club' 
+        error: errorMessage
       };
     }
   };
 
   const leaveClub = async (clubId) => {
     try {
-      await ApiService.leaveClub(clubId);
+      const response = await ApiService.leaveClub(clubId);
       setClubs(clubs.map(c => 
         c._id === clubId 
-          ? { ...c, communityMembers: Math.max(0, c.communityMembers - 1) } 
+          ? { ...c, communityMembers: Math.max(0, (c.communityMembers || 1) - 1) } 
           : c
       ));
-      return { success: true };
+      // Reload clubs to get updated member counts
+      await fetchClubs();
+      return { 
+        success: true,
+        message: 'Successfully left community!'
+      };
     } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to leave community. Please try again.';
+      console.error('Leave club error:', errorMessage);
       return { 
         success: false, 
-        error: err.response?.data?.message || 'Failed to leave club' 
+        error: errorMessage
       };
     }
   };
