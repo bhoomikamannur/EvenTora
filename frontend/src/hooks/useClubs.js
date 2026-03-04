@@ -14,10 +14,13 @@ export const useClubs = () => {
     try {
       setLoading(true);
       const response = await ApiService.getClubs();
-      setClubs(response.data);
+      // Extract data array from new API response format
+      const clubsArray = response.data?.data || response.data || [];
+      setClubs(Array.isArray(clubsArray) ? clubsArray : []);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch clubs');
+      setClubs([]);
     } finally {
       setLoading(false);
     }

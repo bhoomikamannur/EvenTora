@@ -112,31 +112,7 @@ const LoginScreen = () => {
           </div>
         )}
 
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p className="font-semibold mb-2">📋 Demo Credentials:</p>
-          
-          {userType === 'student' ? (
-            <>
-              <p className="mb-1"><strong>Student:</strong></p>
-              <p>student@iiitdwd.ac.in</p>
-              <p>Password: student123</p>
-            </>
-          ) : (
-            <>
-              <p className="mb-1"><strong>Tech Club Admin:</strong></p>
-              <p>admin@iiitdwd.ac.in</p>
-              <p className="mb-2">Password: admin123</p>
-
-              <p className="mb-1"><strong>Music Club Admin:</strong></p>
-              <p>musicclub@iiitdwd.ac.in</p>
-              <p className="mb-2">Password: music123</p>
-
-              <p className="mb-1"><strong>Dance Crew Admin:</strong></p>
-              <p>dynamight@iiitdwd.ac.in</p>
-              <p>Password: dynamight123</p>
-            </>
-          )}
-        </div>
+        
       </div>
     </div>
   );

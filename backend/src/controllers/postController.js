@@ -1,140 +1,240 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
 const Club = require('../models/Club');
+const { ERROR_MESSAGES, HTTP_STATUS } = require('../utils/constants');
+const validators = require('../utils/validators');
+const ApiResponse = require('../utils/apiResponse');
 
 // @desc    Get all posts
 // @route   GET /api/posts
 // @access  Public
-exports.getAllPosts = async (req, res) => {
+exports.getAllPosts = async (req, res, next) => {
   try {
-    const { clubId } = req.query;
+    const { clubId, page = 1, limit = 10 } = req.query;
     
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
     let query = {};
     if (clubId) {
+      if (!validators.validateObjectId(clubId)) {
+        return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+      }
       query.clubId = clubId;
     }
 
+    const total = await Post.countDocuments(query);
     const posts = await Post.find(query)
       .populate('clubId', 'name logo color')
-      .sort({ createdAt: -1 });
+      .populate('authorId', 'username email')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
     
-    res.json(posts);
+    return ApiResponse.paginated(res, posts, total, pageNum, limitNum, 'Posts fetched successfully');
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Get single post
 // @route   GET /api/posts/:id
 // @access  Public
-exports.getPostById = async (req, res) => {
+exports.getPostById = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id)
-      .populate('clubId', 'name logo color');
+    const { id } = req.params;
+
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    const post = await Post.findById(id)
+      .populate('clubId', 'name logo color')
+      .populate('authorId', 'username email');
     
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.POST_NOT_FOUND);
     }
     
-    res.json(post);
+    return ApiResponse.success(res, post, 'Post fetched successfully');
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Create post
 // @route   POST /api/posts
 // @access  Private
-exports.createPost = async (req, res) => {
+exports.createPost = async (req, res, next) => {
   try {
     const { clubId, eventTitle, caption, images } = req.body;
     
-    // Get club info for author name
+    // Validate required fields
+    if (!clubId || !eventTitle || !caption) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD);
+    }
+
+    // Validate clubId format
+    if (!validators.validateObjectId(clubId)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    // Validate club exists
     const club = await Club.findById(clubId);
     if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
+    }
+
+    // Validate field lengths
+    if (eventTitle.trim().length < 2 || eventTitle.trim().length > 200) {
+      return ApiResponse.badRequest(res, 'Event title must be between 2 and 200 characters');
+    }
+
+    if (caption.trim().length < 1 || caption.trim().length > 5000) {
+      return ApiResponse.badRequest(res, 'Caption must be between 1 and 5000 characters');
+    }
+
+    // Validate images array if provided
+    if (images && Array.isArray(images)) {
+      for (let img of images) {
+        if (!validators.validateURL(img)) {
+          return ApiResponse.badRequest(res, 'Invalid image URL format');
+        }
+      }
     }
 
     const post = await Post.create({
       clubId,
-      eventTitle,
-      caption,
+      eventTitle: eventTitle.trim(),
+      caption: validators.sanitizeInput(caption),
       images: images || [],
       author: club.name,
       authorId: req.user._id
     });
 
     const populatedPost = await Post.findById(post._id)
-      .populate('clubId', 'name logo color');
+      .populate('clubId', 'name logo color')
+      .populate('authorId', 'username email');
     
-    res.status(201).json(populatedPost);
+    return ApiResponse.created(res, populatedPost, ERROR_MESSAGES.OPERATIONS.CREATE_SUCCESS);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Update post
 // @route   PUT /api/posts/:id
 // @access  Private
-exports.updatePost = async (req, res) => {
+exports.updatePost = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    const post = await Post.findById(id);
     
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.POST_NOT_FOUND);
     }
+
+    // Check authorization
+    const postAuthorId = post.authorId.toString();
+    const currentUserId = req.user._id.toString();
     
-    // Check if user is authorized
-    if (post.authorId.toString() !== req.user._id.toString() && req.user.userType !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized to update this post' });
+    if (postAuthorId !== currentUserId && req.user.role !== 'admin') {
+      return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_UPDATE);
+    }
+
+    // Validate fields if provided
+    if (req.body.eventTitle && (req.body.eventTitle.trim().length < 2 || req.body.eventTitle.trim().length > 200)) {
+      return ApiResponse.badRequest(res, 'Event title must be between 2 and 200 characters');
+    }
+
+    if (req.body.caption && (req.body.caption.trim().length < 1 || req.body.caption.trim().length > 5000)) {
+      return ApiResponse.badRequest(res, 'Caption must be between 1 and 5000 characters');
+    }
+
+    if (req.body.images && Array.isArray(req.body.images)) {
+      for (let img of req.body.images) {
+        if (!validators.validateURL(img)) {
+          return ApiResponse.badRequest(res, 'Invalid image URL format');
+        }
+      }
+    }
+
+    // Sanitize inputs
+    if (req.body.caption) {
+      req.body.caption = validators.sanitizeInput(req.body.caption);
+    }
+    if (req.body.eventTitle) {
+      req.body.eventTitle = req.body.eventTitle.trim();
     }
 
     const updatedPost = await Post.findByIdAndUpdate(
-      req.params.id,
+      id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('clubId', 'name logo color');
+    ).populate('clubId', 'name logo color')
+      .populate('authorId', 'username email');
     
-    res.json(updatedPost);
+    return ApiResponse.success(res, updatedPost, ERROR_MESSAGES.OPERATIONS.UPDATE_SUCCESS);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Delete post
 // @route   DELETE /api/posts/:id
 // @access  Private
-exports.deletePost = async (req, res) => {
+exports.deletePost = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id);
-    
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-    
-    // Check if user is authorized
-    if (post.authorId.toString() !== req.user._id.toString() && req.user.userType !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized to delete this post' });
+    const { id } = req.params;
+
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
     }
 
-    await Post.findByIdAndDelete(req.params.id);
+    const post = await Post.findById(id);
     
-    res.json({ message: 'Post deleted successfully' });
+    if (!post) {
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.POST_NOT_FOUND);
+    }
+
+    // Check authorization
+    const postAuthorId = post.authorId.toString();
+    const currentUserId = req.user._id.toString();
+    
+    if (postAuthorId !== currentUserId && req.user.role !== 'admin') {
+      return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_DELETE);
+    }
+
+    await Post.findByIdAndDelete(id);
+    
+    return ApiResponse.success(res, {}, ERROR_MESSAGES.OPERATIONS.DELETE_SUCCESS);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Like/Unlike post
 // @route   POST /api/posts/:id/like
 // @access  Private
-exports.likePost = async (req, res) => {
+exports.likePost = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    const post = await Post.findById(id);
     const user = await User.findById(req.user._id);
     
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.POST_NOT_FOUND);
     }
     
     const userIdString = req.user._id.toString();
@@ -155,38 +255,56 @@ exports.likePost = async (req, res) => {
     await post.save();
     await user.save();
     
-    res.json({ 
-      message: isLiked ? 'Post unliked' : 'Post liked',
-      likes: post.likes,
-      isLiked: !isLiked
-    });
+    return ApiResponse.success(res, 
+      { likes: post.likes, isLiked: !isLiked }, 
+      isLiked ? 'Post unliked successfully' : 'Post liked successfully'
+    );
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Add comment to post
 // @route   POST /api/posts/:id/comment
 // @access  Private
-exports.addComment = async (req, res) => {
+exports.addComment = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const { id } = req.params;
+    const { text } = req.body;
+
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    if (!text || text.trim().length === 0) {
+      return ApiResponse.badRequest(res, 'Comment text is required');
+    }
+
+    if (text.trim().length > 1000) {
+      return ApiResponse.badRequest(res, 'Comment must be less than 1000 characters');
+    }
+    
+    const post = await Post.findById(id);
     
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.POST_NOT_FOUND);
     }
     
     const comment = {
       userId: req.user._id,
       username: req.user.name,
-      text: req.body.text
+      text: validators.sanitizeInput(text)
     };
     
     post.comments.push(comment);
     await post.save();
     
-    res.status(201).json(post);
+    const updatedPost = await Post.findById(id)
+      .populate('clubId', 'name logo color')
+      .populate('authorId', 'username email');
+    
+    return ApiResponse.success(res, updatedPost, 'Comment added successfully');
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };

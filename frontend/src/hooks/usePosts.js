@@ -15,10 +15,13 @@ export const usePosts = (clubId = null) => {
       setLoading(true);
       const params = clubId ? { clubId } : {};
       const response = await ApiService.getPosts(params);
-      setPosts(response.data);
+      // Extract data array from new API response format
+      const postsArray = response.data?.data || response.data || [];
+      setPosts(Array.isArray(postsArray) ? postsArray : []);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch posts');
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -27,8 +30,9 @@ export const usePosts = (clubId = null) => {
   const createPost = async (data) => {
     try {
       const response = await ApiService.createPost(data);
-      setPosts([response.data, ...posts]);
-      return { success: true, data: response.data };
+      const postData = response.data?.data || response.data;
+      setPosts([postData, ...posts]);
+      return { success: true, data: postData };
     } catch (err) {
       return { 
         success: false, 
@@ -40,8 +44,9 @@ export const usePosts = (clubId = null) => {
   const updatePost = async (id, data) => {
     try {
       const response = await ApiService.updatePost(id, data);
-      setPosts(posts.map(p => p._id === id ? response.data : p));
-      return { success: true, data: response.data };
+      const postData = response.data?.data || response.data;
+      setPosts(posts.map(p => p._id === id ? postData : p));
+      return { success: true, data: postData };
     } catch (err) {
       return { 
         success: false, 

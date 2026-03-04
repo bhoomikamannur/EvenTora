@@ -15,10 +15,13 @@ export const useEvents = (clubId = null) => {
       setLoading(true);
       const params = clubId ? { clubId } : {};
       const response = await ApiService.getEvents(params);
-      setEvents(response.data);
+      // Extract data array from new API response format
+      const eventsArray = response.data?.data || response.data || [];
+      setEvents(Array.isArray(eventsArray) ? eventsArray : []);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch events');
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -27,8 +30,9 @@ export const useEvents = (clubId = null) => {
   const createEvent = async (data) => {
     try {
       const response = await ApiService.createEvent(data);
-      setEvents([...events, response.data]);
-      return { success: true, data: response.data };
+      const eventData = response.data?.data || response.data;
+      setEvents([...events, eventData]);
+      return { success: true, data: eventData };
     } catch (err) {
       return { 
         success: false, 
@@ -40,8 +44,9 @@ export const useEvents = (clubId = null) => {
   const updateEvent = async (id, data) => {
     try {
       const response = await ApiService.updateEvent(id, data);
-      setEvents(events.map(e => e._id === id ? response.data : e));
-      return { success: true, data: response.data };
+      const eventData = response.data?.data || response.data;
+      setEvents(events.map(e => e._id === id ? eventData : e));
+      return { success: true, data: eventData };
     } catch (err) {
       return { 
         success: false, 

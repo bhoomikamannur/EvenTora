@@ -19,7 +19,8 @@ export const AuthProvider = ({ children }) => {
   const loadUser = async () => {
     try {
       const response = await ApiService.getMe();
-      setUser(response.data);
+      const userData = response.data?.data || response.data;
+      setUser(userData);
     } catch (error) {
       console.error('Failed to load user:', error);
       logout();
@@ -31,7 +32,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password, userType) => {
     try {
       const response = await ApiService.login({ email, password, userType });
-      const { token, ...userData } = response.data;
+      const responseData = response.data?.data || response.data;
+      const { token, ...userData } = responseData;
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -51,7 +53,8 @@ export const AuthProvider = ({ children }) => {
   const register = async (data) => {
     try {
       const response = await ApiService.register(data);
-      const { token, ...userData } = response.data;
+      const responseData = response.data?.data || response.data;
+      const { token, ...userData } = responseData;
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));

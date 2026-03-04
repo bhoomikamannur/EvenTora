@@ -1,117 +1,229 @@
 const Club = require('../models/Club');
 const User = require('../models/User');
+const { ERROR_MESSAGES, HTTP_STATUS } = require('../utils/constants');
+const validators = require('../utils/validators');
+const ApiResponse = require('../utils/apiResponse');
 
 // @desc    Get all clubs
 // @route   GET /api/clubs
 // @access  Public
-exports.getAllClubs = async (req, res) => {
+exports.getAllClubs = async (req, res, next) => {
   try {
-    const { type, search } = req.query;
+    const { type, search, page = 1, limit = 10 } = req.query;
     
+    // Validate pagination
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
     let query = {};
     
+    // Validate club type if provided
     if (type) {
+      if (!validators.validateClubType(type)) {
+        return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_CLUB_TYPE);
+      }
       query.type = type;
     }
     
-    if (search) {
-      query.name = { $regex: search, $options: 'i' };
+    // Search by name
+    if (search && search.trim()) {
+      query.name = { $regex: validators.sanitizeInput(search), $options: 'i' };
     }
 
-    const clubs = await Club.find(query).sort({ name: 1 });
-    res.json(clubs);
+    const total = await Club.countDocuments(query);
+    const clubs = await Club.find(query)
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    return ApiResponse.paginated(res, clubs, total, pageNum, limitNum, 'Clubs fetched successfully');
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Get single club
 // @route   GET /api/clubs/:id
 // @access  Public
-exports.getClubById = async (req, res) => {
+exports.getClubById = async (req, res, next) => {
   try {
-    const club = await Club.findById(req.params.id);
+    const { id } = req.params;
+
+    // Validate ID format
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    const club = await Club.findById(id);
     
     if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
     
-    res.json(club);
+    return ApiResponse.success(res, club, 'Club fetched successfully');
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Create club
 // @route   POST /api/clubs
 // @access  Private/Admin
-exports.createClub = async (req, res) => {
+exports.createClub = async (req, res, next) => {
   try {
-    const club = await Club.create(req.body);
-    res.status(201).json(club);
+    const { name, type, color, description, logo } = req.body;
+
+    // Validate required fields
+    if (!name || !type) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD);
+    }
+
+    // Validate club name
+    if (name.trim().length < 2 || name.trim().length > 100) {
+      return ApiResponse.badRequest(res, 'Club name must be between 2 and 100 characters');
+    }
+
+    // Validate club type
+    if (!validators.validateClubType(type)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_CLUB_TYPE);
+    }
+
+    // Validate color if provided
+    if (color && !validators.validateColor(color)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_COLOR);
+    }
+
+    // Check if club name already exists
+    const existingClub = await Club.findOne({ name: name.trim() });
+    if (existingClub) {
+      return ApiResponse.conflict(res, 'Club with this name already exists');
+    }
+
+    const clubData = {
+      name: name.trim(),
+      type,
+      description: description ? validators.sanitizeInput(description) : '',
+      color: color || '#ab83c3',
+      logo: logo || '🎯'
+    };
+
+    const club = await Club.create(clubData);
+    return ApiResponse.created(res, club, ERROR_MESSAGES.OPERATIONS.CREATE_SUCCESS);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Update club
 // @route   PUT /api/clubs/:id
 // @access  Private/Admin
-exports.updateClub = async (req, res) => {
+exports.updateClub = async (req, res, next) => {
   try {
-    const club = await Club.findByIdAndUpdate(
-      req.params.id,
+    const { id } = req.params;
+
+    // Validate ID format
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    const club = await Club.findById(id);
+    if (!club) {
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
+    }
+
+    // Validate fields if provided
+    if (req.body.name) {
+      if (req.body.name.trim().length < 2 || req.body.name.trim().length > 100) {
+        return ApiResponse.badRequest(res, 'Club name must be between 2 and 100 characters');
+      }
+      
+      const existing = await Club.findOne({ name: req.body.name.trim(), _id: { $ne: id } });
+      if (existing) {
+        return ApiResponse.conflict(res, 'Club with this name already exists');
+      }
+    }
+
+    if (req.body.type && !validators.validateClubType(req.body.type)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_CLUB_TYPE);
+    }
+
+    if (req.body.color && !validators.validateColor(req.body.color)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_COLOR);
+    }
+
+    if (req.body.description) {
+      req.body.description = validators.sanitizeInput(req.body.description);
+    }
+
+    if (req.body.name) {
+      req.body.name = req.body.name.trim();
+    }
+
+    const updatedClub = await Club.findByIdAndUpdate(
+      id,
       req.body,
       { new: true, runValidators: true }
     );
     
-    if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
-    }
-    
-    res.json(club);
+    return ApiResponse.success(res, updatedClub, ERROR_MESSAGES.OPERATIONS.UPDATE_SUCCESS);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Delete club
 // @route   DELETE /api/clubs/:id
 // @access  Private/Admin
-exports.deleteClub = async (req, res) => {
+exports.deleteClub = async (req, res, next) => {
   try {
-    const club = await Club.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+
+    // Validate ID format
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    const club = await Club.findByIdAndDelete(id);
     
     if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
     
-    res.json({ message: 'Club deleted successfully' });
+    return ApiResponse.success(res, {}, ERROR_MESSAGES.OPERATIONS.DELETE_SUCCESS);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Join club
 // @route   POST /api/clubs/:id/join
 // @access  Private
-exports.joinClub = async (req, res) => {
+exports.joinClub = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id);
-    const club = await Club.findById(req.params.id);
-    
-    if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+    const { id } = req.params;
+
+    // Validate ID format
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
     }
 
-    // Admins cannot join clubs (they can only manage their assigned club)
+    const user = await User.findById(req.user._id);
+    const club = await Club.findById(id);
+    
+    if (!club) {
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
+    }
+
+    // Admins cannot join clubs
     if (user.userType === 'admin') {
-      return res.status(403).json({ message: 'Admins cannot join communities. You can only manage your assigned club.' });
+      return ApiResponse.forbidden(res, 'Admins cannot join communities. You can only manage your assigned club.');
     }
     
     // Check if already joined
-    if (user.joinedClubs.includes(club._id)) {
-      return res.status(400).json({ message: 'Already joined this club' });
+    const alreadyJoined = user.joinedClubs.some(clubId => clubId.toString() === id);
+    if (alreadyJoined) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.RESOURCES.ALREADY_JOINED);
     }
     
     // Add club to user's joined clubs
@@ -119,31 +231,39 @@ exports.joinClub = async (req, res) => {
     await user.save();
     
     // Increment club member count
-    club.communityMembers += 1;
+    club.communityMembers = (club.communityMembers || 0) + 1;
     await club.save();
 
     const updatedUser = await User.findById(user._id).populate('joinedClubs');
-    res.json({ message: 'Joined club successfully', user: updatedUser });
+    return ApiResponse.success(res, { user: updatedUser }, 'Joined club successfully');
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Leave club
 // @route   POST /api/clubs/:id/leave
 // @access  Private
-exports.leaveClub = async (req, res) => {
+exports.leaveClub = async (req, res, next) => {
   try {
+    const { id } = req.params;
+
+    // Validate ID format
+    if (!validators.validateObjectId(id)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
     const user = await User.findById(req.user._id);
-    const club = await Club.findById(req.params.id);
+    const club = await Club.findById(id);
     
     if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
     
     // Check if user is member
-    if (!user.joinedClubs.includes(club._id)) {
-      return res.status(400).json({ message: 'Not a member of this club' });
+    const isMember = user.joinedClubs.some(clubId => clubId.toString() === id);
+    if (!isMember) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.RESOURCES.NOT_JOINED);
     }
     
     // Remove club from user's joined clubs
@@ -153,11 +273,11 @@ exports.leaveClub = async (req, res) => {
     await user.save();
     
     // Decrement club member count
-    club.communityMembers = Math.max(0, club.communityMembers - 1);
+    club.communityMembers = Math.max(0, (club.communityMembers || 1) - 1);
     await club.save();
     
-    res.json({ message: 'Left club successfully' });
+    return ApiResponse.success(res, {}, 'Left club successfully');
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
