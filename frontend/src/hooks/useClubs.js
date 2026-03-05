@@ -39,7 +39,8 @@ export const useClubs = () => {
       ));
       
       // Extract joined clubs from the response
-      const userJoinedClubs = response.data?.user?.joinedClubs || [];
+      // Response structure: { data: { user: { joinedClubs: [...] } } }
+      const userJoinedClubs = response.data?.data?.user?.joinedClubs || [];
       const joinedClubIds = Array.isArray(userJoinedClubs)
         ? userJoinedClubs.map(c => (typeof c === 'object' ? c._id : c)).filter(Boolean)
         : [];

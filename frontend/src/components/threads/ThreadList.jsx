@@ -24,17 +24,21 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
         ? await ApiService.getReportedThreads(clubId)
         : await ApiService.getThreads(clubId);
       
-      setThreads(response.data);
+      // Extract threads from nested response structure
+      // Response: { success: true, data: [...], message: "..." }
+      const threadsData = response.data?.data || response.data || [];
+      console.log('📌 Loaded threads:', threadsData);
+      setThreads(Array.isArray(threadsData) ? threadsData : []);
       
       // Set initial liked status
-      const userLikedThreads = response.data
+      const userLikedThreads = threadsData
         .filter(t => t.likedBy?.includes(currentUserId))
         .map(t => t._id);
       setLikedThreads(userLikedThreads);
       
       // Set initial liked replies
       const userLikedReplies = [];
-      response.data.forEach(thread => {
+      threadsData.forEach(thread => {
         thread.replies?.forEach(reply => {
           if (reply.likedBy?.includes(currentUserId)) {
             userLikedReplies.push(reply._id);
@@ -45,6 +49,7 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
       
     } catch (error) {
       console.error('Failed to load threads:', error);
+      setThreads([]);
     } finally {
       setLoading(false);
     }
@@ -56,9 +61,13 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
     setSubmitting(true);
     try {
       const response = await ApiService.createThread(clubId, { content: newThreadText });
-      setThreads([response.data, ...threads]);
+      // Extract thread from nested response: { success: true, data: thread_object }
+      const newThread = response.data?.data || response.data;
+      console.log('✅ New thread created:', newThread);
+      setThreads([newThread, ...threads]);
       setNewThreadText('');
     } catch (error) {
+      console.error('❌ Failed to create thread:', error);
       alert('Failed to create thread');
     } finally {
       setSubmitting(false);
@@ -68,10 +77,11 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
   const handleLikeThread = async (threadId) => {
     try {
       const response = await ApiService.likeThread(threadId);
+      const unlikeData = response.data?.data || response.data;
       
       setThreads(threads.map(t => 
         t._id === threadId 
-          ? { ...t, likes: response.data.likes }
+          ? { ...t, likes: unlikeData.likes, isLiked: unlikeData.isLiked }
           : t
       ));
       
@@ -88,8 +98,10 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
   const handleReply = async (threadId, content) => {
     try {
       const response = await ApiService.addReply(threadId, { content });
+      const updatedThread = response.data?.data || response.data;
+      console.log('✅ Reply added, updated thread:', updatedThread);
       setThreads(threads.map(t =>
-        t._id === threadId ? response.data : t
+        t._id === threadId ? updatedThread : t
       ));
     } catch (error) {
       alert('Failed to add reply');
@@ -99,6 +111,7 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
   const handleLikeReply = async (threadId, replyId) => {
     try {
       const response = await ApiService.likeReply(threadId, replyId);
+      const likeData = response.data?.data || response.data;
       
       setThreads(threads.map(t => {
         if (t._id === threadId) {
@@ -106,7 +119,7 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
             ...t,
             replies: t.replies.map(r =>
               r._id === replyId
-                ? { ...r, likes: response.data.likes }
+                ? { ...r, likes: likeData.likes, isLiked: likeData.isLiked }
                 : r
             )
           };

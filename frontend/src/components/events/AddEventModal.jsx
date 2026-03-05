@@ -1,17 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
-const AddEventModal = ({ onClose, onAdd, clubId }) => {
+const AddEventModal = ({ onClose, onAdd, clubId, clubs = [] }) => {
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [venue, setVenue] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [selectedClubId, setSelectedClubId] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Auto-set club ID from either passed clubId (from CommunityScreen) or user's adminClubId (for admin)
+  useEffect(() => {
+    if (clubId) {
+      setSelectedClubId(clubId);
+    } else if (user?.adminClubId) {
+      setSelectedClubId(user.adminClubId);
+    }
+  }, [clubId, user]);
+
   const handleSubmit = async () => {
+    // Club ID should always be set (either from passed clubId or user.adminClubId)
     if (!title || !venue || !date || !time) {
       alert('Please fill in all required fields');
+      return;
+    }
+
+    if (!selectedClubId) {
+      alert('Please select a club');
       return;
     }
 
@@ -23,7 +41,7 @@ const AddEventModal = ({ onClose, onAdd, clubId }) => {
       venue, 
       date, 
       time, 
-      clubId 
+      clubId: selectedClubId 
     });
     
     if (result.success) {

@@ -11,7 +11,6 @@ const ApiResponse = require('../utils/apiResponse');
 exports.getClubThreads = async (req, res, next) => {
   try {
     const { clubId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
 
     if (!validators.validateObjectId(clubId)) {
       return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
@@ -22,18 +21,11 @@ exports.getClubThreads = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
 
-    const pageNum = Math.max(1, parseInt(page));
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
-    const skip = (pageNum - 1) * limitNum;
-
-    const total = await Thread.countDocuments({ clubId });
     const threads = await Thread.find({ clubId })
       .populate('userId', 'name username email')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limitNum);
+      .sort({ createdAt: -1 });
     
-    return ApiResponse.paginated(res, threads, total, pageNum, limitNum, 'Threads fetched successfully');
+    return ApiResponse.success(res, threads, 'Threads fetched successfully');
   } catch (error) {
     next(error);
   }

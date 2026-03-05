@@ -42,19 +42,24 @@ const AppContent = () => {
 
   const loadUserData = async () => {
     try {
-      const userData = await ApiService.getMe();
-      console.log('📦 User data loaded:', userData.data);
+      const response = await ApiService.getMe();
+      console.log('📦 Raw response:', response);
+      
+      // Extract user from nested response structure
+      // Response structure: { data: { success: true, data: user, ... }, ... }
+      const user = response.data?.data || response.data;
+      console.log('👤 User object:', user);
       
       // Extract joined clubs - handle both array of objects and array of IDs
-      const clubs = userData.data?.joinedClubs || [];
+      const clubs = user?.joinedClubs || [];
       const clubIds = Array.isArray(clubs) 
         ? clubs.map(c => (typeof c === 'object' ? c._id : c)).filter(Boolean)
         : [];
         
       console.log('🏢 Extracted club IDs:', clubIds);
       setJoinedClubs(clubIds);
-      setLikedPosts(userData.data?.likedPosts || []);
-      setRsvpEvents(userData.data?.rsvpEvents || []);
+      setLikedPosts(user?.likedPosts || []);
+      setRsvpEvents(user?.rsvpEvents || []);
     } catch (error) {
       console.error('Failed to load user data:', error);
     }
@@ -66,20 +71,31 @@ const AppContent = () => {
     });
     
     if (!alreadyJoined) {
-      const result = await joinClub(clubId);
-      if (result.success) {
-        console.log('✅ Join successful, reloading user data...');
-        setToast({ type: 'success', message: '✅ Joining community, please wait...' });
-        // Reload user data from backend to get the fresh joined clubs list
-        setTimeout(async () => {
-          await loadUserData();
-          setToast({ type: 'success', message: '✅ Successfully joined! Refreshing...' });
-        }, 500);
-      } else {
-        setToast({ type: 'error', message: `❌ ${result.error}` });
+      try {
+        setToast({ type: 'success', message: '✅ Joining community...' });
+        
+        // Call join API
+        const result = await joinClub(clubId);
+        
+        if (result.success) {
+          // Immediately add to local state for instant UI update
+          setJoinedClubs([...joinedClubs, clubId]);
+          console.log('✅ Club added to local state:', clubId);
+          
+          // Then reload fresh data from backend to confirm
+          setTimeout(async () => {
+            await loadUserData();
+            console.log('✅ User data reloaded from backend');
+          }, 100);
+        } else {
+          setToast({ type: 'error', message: `❌ ${result.error}` });
+        }
+      } catch (error) {
+        console.error('Join error:', error);
+        setToast({ type: 'error', message: '❌ Failed to join community' });
       }
     } else {
-      setToast({ type: 'info', message: '✅ Already a member of this community!' });
+      setToast({ type: 'info', message: '✅ Already a member!' });
     }
   };
 
@@ -227,6 +243,7 @@ const AppContent = () => {
                 events={events}
                 isAdmin={isAdmin}
                 onAddEvent={handleEventCreated}
+                clubs={clubs}
               />
             )}
 

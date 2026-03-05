@@ -45,9 +45,9 @@ exports.addMember = async (req, res, next) => {
     const { clubId } = req.params;
     const { name, position, email } = req.body;
 
-    // Validate required fields
-    if (!clubId || !name || !email) {
-      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD);
+    // Validate required fields - only name is required
+    if (!clubId || !name) {
+      return ApiResponse.badRequest(res, 'Club ID and member name are required');
     }
 
     // Validate clubId format
@@ -66,15 +66,17 @@ exports.addMember = async (req, res, next) => {
       return ApiResponse.badRequest(res, 'Member name must be between 2 and 100 characters');
     }
 
-    // Validate email
-    if (!validators.validateEmail(email)) {
-      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_EMAIL);
+    // Validate email if provided (optional)
+    if (email && !validators.validateEmail(email)) {
+      return ApiResponse.badRequest(res, 'Invalid email format');
     }
 
-    // Check for duplicate email in club
-    const existingMember = await Member.findOne({ clubId, email });
-    if (existingMember) {
-      return ApiResponse.badRequest(res, 'Member with this email already exists in the club');
+    // Check for duplicate email in club (only if email is provided)
+    if (email) {
+      const existingMember = await Member.findOne({ clubId, email: email.trim().toLowerCase() });
+      if (existingMember) {
+        return ApiResponse.badRequest(res, 'Member with this email already exists in the club');
+      }
     }
 
     // Validate position if provided

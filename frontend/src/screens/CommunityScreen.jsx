@@ -89,9 +89,13 @@ const CommunityScreen = ({
     try {
       setLoading(true);
       const response = await ApiService.getMembers(clubId);
-      setMembers(response.data);
+      // Extract array from nested response structure
+      const membersData = response.data?.data || response.data || [];
+      console.log('📋 Loaded members:', membersData);
+      setMembers(Array.isArray(membersData) ? membersData : []);
     } catch (error) {
       console.error('Failed to load members:', error);
+      setMembers([]);
     } finally {
       setLoading(false);
     }
@@ -101,9 +105,13 @@ const CommunityScreen = ({
     try {
       setLoading(true);
       const response = await ApiService.getMedia(clubId);
-      setClubMedia(response.data);
+      // Extract array from nested response structure
+      const mediaData = response.data?.data || response.data || [];
+      console.log('🎬 Loaded media:', mediaData);
+      setClubMedia(Array.isArray(mediaData) ? mediaData : []);
     } catch (error) {
       console.error('Failed to load media:', error);
+      setClubMedia([]);
     } finally {
       setLoading(false);
     }
@@ -170,13 +178,17 @@ const CommunityScreen = ({
   const handleAddMember = async (clubId, data) => {
     try {
       const response = await ApiService.addMember(clubId, data);
-      setMembers([...members, response.data]);
+      const memberData = response.data?.data || response.data;
+      console.log('✅ Member added:', memberData);
+      setMembers([...members, memberData]);
       setShowAddMember(false);
       return { success: true };
     } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to add member';
+      console.error('❌ Add member error:', errorMsg, error.response?.data);
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Failed to add member' 
+        error: errorMsg
       };
     }
   };
@@ -206,13 +218,17 @@ const CommunityScreen = ({
   const handleAddMedia = async (clubId, data) => {
     try {
       const response = await ApiService.createMedia(clubId, data);
-      setClubMedia([response.data, ...clubMedia]);
+      const mediaData = response.data?.data || response.data;
+      console.log('✅ Media added:', mediaData);
+      setClubMedia([mediaData, ...clubMedia]);
       setShowAddMedia(false);
       return { success: true };
     } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to add media';
+      console.error('❌ Add media error:', errorMsg, error.response?.data);
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Failed to add media' 
+        error: errorMsg
       };
     }
   };

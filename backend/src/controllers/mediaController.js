@@ -74,12 +74,12 @@ exports.createMedia = async (req, res, next) => {
     }
 
     // Validate link URL
-    if (!validators.validateURL(link)) {
+    if (!validators.validateUrl(link)) {
       return ApiResponse.badRequest(res, 'Invalid media link URL format');
     }
 
     // Validate thumbnail if provided
-    if (thumbnail && !validators.validateURL(thumbnail)) {
+    if (thumbnail && !validators.validateUrl(thumbnail)) {
       return ApiResponse.badRequest(res, 'Invalid thumbnail URL format');
     }
 
@@ -132,11 +132,11 @@ exports.updateMedia = async (req, res, next) => {
       return ApiResponse.badRequest(res, `Media type must be one of: ${VALID_MEDIA_TYPES.join(', ')}`);
     }
 
-    if (req.body.link && !validators.validateURL(req.body.link)) {
+    if (req.body.link && !validators.validateUrl(req.body.link)) {
       return ApiResponse.badRequest(res, 'Invalid media link URL format');
     }
 
-    if (req.body.thumbnail && !validators.validateURL(req.body.thumbnail)) {
+    if (req.body.thumbnail && !validators.validateUrl(req.body.thumbnail)) {
       return ApiResponse.badRequest(res, 'Invalid thumbnail URL format');
     }
 

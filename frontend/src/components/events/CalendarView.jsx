@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AddEventModal from './AddEventModal';
 
-const CalendarView = ({ events, isAdmin, onAddEvent }) => {
+const CalendarView = ({ events, isAdmin, onAddEvent, clubs = [] }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showAddEvent, setShowAddEvent] = useState(false);
 
@@ -118,7 +118,8 @@ const CalendarView = ({ events, isAdmin, onAddEvent }) => {
       {showAddEvent && (
         <AddEventModal 
           onClose={() => setShowAddEvent(false)} 
-          onAdd={onAddEvent} 
+          onAdd={onAddEvent}
+          clubs={clubs}
         />
       )}
     </div>

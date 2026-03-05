@@ -27,7 +27,7 @@ exports.getAllPosts = async (req, res, next) => {
     const total = await Post.countDocuments(query);
     const posts = await Post.find(query)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email')
+      .populate('authorId', 'username email name')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
@@ -51,7 +51,7 @@ exports.getPostById = async (req, res, next) => {
 
     const post = await Post.findById(id)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email');
+      .populate('authorId', 'username email name');
     
     if (!post) {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.POST_NOT_FOUND);
@@ -98,7 +98,7 @@ exports.createPost = async (req, res, next) => {
     // Validate images array if provided
     if (images && Array.isArray(images)) {
       for (let img of images) {
-        if (!validators.validateURL(img)) {
+        if (!validators.validateUrl(img)) {
           return ApiResponse.badRequest(res, 'Invalid image URL format');
         }
       }
@@ -115,7 +115,7 @@ exports.createPost = async (req, res, next) => {
 
     const populatedPost = await Post.findById(post._id)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email');
+      .populate('authorId', 'username email name');
     
     return ApiResponse.created(res, populatedPost, ERROR_MESSAGES.OPERATIONS.CREATE_SUCCESS);
   } catch (error) {
@@ -159,7 +159,7 @@ exports.updatePost = async (req, res, next) => {
 
     if (req.body.images && Array.isArray(req.body.images)) {
       for (let img of req.body.images) {
-        if (!validators.validateURL(img)) {
+        if (!validators.validateUrl(img)) {
           return ApiResponse.badRequest(res, 'Invalid image URL format');
         }
       }
@@ -178,7 +178,7 @@ exports.updatePost = async (req, res, next) => {
       req.body,
       { new: true, runValidators: true }
     ).populate('clubId', 'name logo color')
-      .populate('authorId', 'username email');
+      .populate('authorId', 'username email name');
     
     return ApiResponse.success(res, updatedPost, ERROR_MESSAGES.OPERATIONS.UPDATE_SUCCESS);
   } catch (error) {
@@ -301,7 +301,7 @@ exports.addComment = async (req, res, next) => {
     
     const updatedPost = await Post.findById(id)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email');
+      .populate('authorId', 'username email name');
     
     return ApiResponse.success(res, updatedPost, 'Comment added successfully');
   } catch (error) {
