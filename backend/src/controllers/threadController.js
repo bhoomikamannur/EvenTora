@@ -11,22 +11,55 @@ const ApiResponse = require('../utils/apiResponse');
 exports.getClubThreads = async (req, res, next) => {
   try {
     const { clubId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    console.log('\n📡 getClubThreads called:');
+    console.log('  clubId:', clubId);
+    console.log('  userId:', req.user?._id);
 
     if (!validators.validateObjectId(clubId)) {
+      console.error('❌ Invalid clubId:', clubId);
       return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
     }
 
     const club = await Club.findById(clubId);
     if (!club) {
+      console.error('❌ Club not found:', clubId);
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
 
+    console.log('✅ Club found:', club.name);
+
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
+    const total = await Thread.countDocuments({ clubId });
+    console.log('📊 Total threads in club:', total);
+
     const threads = await Thread.find({ clubId })
       .populate('userId', 'name username email')
-      .sort({ createdAt: -1 });
+      .populate('replies.userId', 'name username email')
+      .populate('likedBy', '_id')
+      .populate('replies.likedBy', '_id')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
     
-    return ApiResponse.success(res, threads, 'Threads fetched successfully');
+    console.log('✅ Fetched threads:', threads.length);
+    console.log('📥 Fetched threads with replies:', threads.map(t => ({ 
+      id: t._id, 
+      username: t.username, 
+      content: t.content,
+      repliesCount: t.replies?.length || 0,
+      likes: t.likes,
+      repliesSample: t.replies?.slice(0, 1).map(r => ({ username: r.username, content: r.content }))
+    })));
+    
+    return ApiResponse.paginated(res, threads, total, pageNum, limitNum, 'Threads fetched successfully');
   } catch (error) {
+    console.error('❌ Error in getClubThreads:', error.message);
     next(error);
   }
 };
@@ -52,7 +85,11 @@ exports.getReportedThreads = async (req, res, next) => {
       isReported: true 
     })
       .populate('userId', 'name username email')
-      .sort({ createdAt: -1 });
+      .populate('replies.userId', 'name username email')
+      .populate('likedBy', '_id')
+      .populate('replies.likedBy', '_id')
+      .sort({ createdAt: -1 })
+      .lean();
     
     return ApiResponse.success(res, threads, 'Reported threads fetched successfully');
   } catch (error) {
@@ -98,7 +135,16 @@ exports.createThread = async (req, res, next) => {
     });
     
     const populatedThread = await Thread.findById(thread._id)
-      .populate('userId', 'name username email');
+      .populate('userId', 'name username email')
+      .populate('likedBy', '_id')
+      .populate('replies.userId', 'name username email');
+    
+    console.log('✅ Thread created:', {
+      id: populatedThread._id,
+      author: populatedThread.author,
+      username: populatedThread.username,
+      content: populatedThread.content.substring(0, 50)
+    });
     
     return ApiResponse.created(res, populatedThread, ERROR_MESSAGES.OPERATIONS.CREATE_SUCCESS);
   } catch (error) {
@@ -137,9 +183,21 @@ exports.likeThread = async (req, res, next) => {
     }
     
     await thread.save();
+
+    // Return full thread with populated data for UI consistency
+    const updatedThread = await Thread.findById(thread._id)
+      .populate('userId', 'username name')
+      .populate('likedBy', 'username name')
+      .populate('replies.userId', 'username name')
+      .populate('replies.likedBy', 'username name');
     
     return ApiResponse.success(res, 
-      { likes: thread.likes, isLiked: !isLiked },
+      { 
+        thread: updatedThread,
+        likes: updatedThread.likes, 
+        isLiked: !isLiked,
+        likedCount: updatedThread.likes
+      },
       isLiked ? 'Thread unliked successfully' : 'Thread liked successfully'
     );
   } catch (error) {
@@ -185,7 +243,16 @@ exports.addReply = async (req, res, next) => {
     await thread.save();
     
     const populatedThread = await Thread.findById(thread._id)
-      .populate('userId', 'name username email');
+      .populate('userId', 'name username email')
+      .populate('replies.userId', 'name username email')
+      .populate('likedBy', '_id')
+      .populate('replies.likedBy', '_id');
+    
+    console.log('✅ Reply added:', {
+      threadId: thread._id,
+      repliesCount: populatedThread.replies.length,
+      latestReply: populatedThread.replies[populatedThread.replies.length - 1]
+    });
     
     return ApiResponse.success(res, populatedThread, 'Reply added successfully');
   } catch (error) {
@@ -235,8 +302,20 @@ exports.likeReply = async (req, res, next) => {
     
     await thread.save();
     
+    // Return full thread with populated data for UI consistency
+    const updatedThread = await Thread.findById(threadId)
+      .populate('userId', 'username name')
+      .populate('likedBy', 'username name')
+      .populate('replies.userId', 'username name')
+      .populate('replies.likedBy', 'username name');
+    
     return ApiResponse.success(res,
-      { likes: reply.likes, isLiked: !isLiked },
+      { 
+        thread: updatedThread,
+        likes: reply.likes, 
+        isLiked: !isLiked,
+        likedCount: reply.likes
+      },
       isLiked ? 'Reply unliked successfully' : 'Reply liked successfully'
     );
   } catch (error) {
@@ -381,7 +460,7 @@ exports.deleteThread = async (req, res, next) => {
     
     // Check if user is author or admin
     const isAuthor = thread.userId.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.userType === 'admin';
     
     if (!isAuthor && !isAdmin) {
       return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_DELETE);
@@ -427,7 +506,7 @@ exports.deleteReply = async (req, res, next) => {
     
     // Check if user is author or admin
     const isAuthor = reply.userId.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.userType === 'admin';
     
     if (!isAuthor && !isAdmin) {
       return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_DELETE);

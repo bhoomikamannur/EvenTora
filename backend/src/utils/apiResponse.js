@@ -1,7 +1,3 @@
-/**
- * API Response Formatter
- * Provides consistent response format across all endpoints
- */
 
 const { HTTP_STATUS } = require('./constants');
 

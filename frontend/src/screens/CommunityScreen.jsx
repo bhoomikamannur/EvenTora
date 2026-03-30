@@ -60,9 +60,22 @@ const CommunityScreen = ({
 
   const club = clubs.find(c => c._id === clubId);
   // Check if clubId is in joinedClubs array - handle both string IDs and objects
-  const isJoined = joinedClubs && joinedClubs.some(id => {
-    return (typeof id === 'string') ? id === clubId : id._id === clubId;
-  });
+  // Admin users managing this club are automatically considered "joined"
+  const isJoined = (user?.userType === 'admin' && user?.adminClubId === clubId) || 
+    (joinedClubs && joinedClubs.some(id => {
+      const matches = (typeof id === 'string') ? id === clubId : id._id === clubId;
+      return matches;
+    }));
+  
+  // Debug log
+  useEffect(() => {
+    console.log(`🔍 CommunityScreen isJoined check:`, {
+      clubId,
+      isJoined,
+      joinedClubsLength: joinedClubs?.length,
+      joinedClubs: joinedClubs
+    });
+  }, [clubId, isJoined, joinedClubs]);
   
   const clubPosts = posts.filter(p => p.clubId === clubId || p.clubId?._id === clubId);
   const clubEvents = events.filter(e => e.clubId === clubId || e.clubId?._id === clubId);
@@ -217,18 +230,19 @@ const CommunityScreen = ({
 
   const handleAddMedia = async (clubId, data) => {
     try {
+      console.log('📤 Adding media with data:', data);
       const response = await ApiService.createMedia(clubId, data);
+      console.log('📥 Create media response:', response);
       const mediaData = response.data?.data || response.data;
-      console.log('✅ Media added:', mediaData);
+      console.log('✅ Media data extracted:', mediaData);
       setClubMedia([mediaData, ...clubMedia]);
       setShowAddMedia(false);
       return { success: true };
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to add media';
-      console.error('❌ Add media error:', errorMsg, error.response?.data);
+      console.error('❌ Failed to add media:', error);
       return { 
         success: false, 
-        error: errorMsg
+        error: error.response?.data?.message || 'Failed to add media' 
       };
     }
   };
@@ -313,11 +327,15 @@ const CommunityScreen = ({
           </div>
         ) : (
           <button 
-            onClick={() => onJoin(clubId)} 
+            onClick={() => {
+              console.log('👆 Join button clicked for club:', clubId);
+              onJoin(clubId);
+            }}
             className={`px-8 py-3 rounded-xl font-semibold transition hover:opacity-90 ${
-              isJoined ? 'bg-gray-200 text-gray-700' : 'text-white'
+              isJoined ? 'bg-gray-200 text-gray-700 cursor-default' : 'text-white hover:shadow-lg'
             }`}
             style={!isJoined ? { background: club.color } : {}}
+            disabled={isJoined}
           >
             {isJoined ? '✓ Joined' : 'Join Community'}
           </button>
@@ -329,12 +347,20 @@ const CommunityScreen = ({
         {tabs.map(tab => (
           <button 
             key={tab} 
-            onClick={() => setActiveTab(tab)} 
+            onClick={() => {
+              if (!isJoined && lockedTabs.includes(tab)) {
+                console.log('🔒 Tab locked:', tab, 'isJoined:', isJoined);
+                alert('Join the community first to access ' + tab);
+              } else {
+                setActiveTab(tab);
+              }
+            }}
             disabled={!isJoined && lockedTabs.includes(tab)}
             className={`px-6 py-2 rounded-xl font-medium whitespace-nowrap transition ${
               activeTab === tab ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             } ${!isJoined && lockedTabs.includes(tab) ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={activeTab === tab ? { background: club.color } : {}}
+            title={!isJoined && lockedTabs.includes(tab) ? 'Join the community to unlock' : ''}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
             {!isJoined && lockedTabs.includes(tab) && ' 🔒'}
@@ -357,17 +383,24 @@ const CommunityScreen = ({
               </button>
             )}
             {clubPosts.length > 0 ? (
-              clubPosts.map(post => (
-                <PostCard 
-                  key={post._id} 
-                  post={post} 
-                  onLike={onLike} 
-                  isLiked={likedPosts.includes(post._id)} 
-                  onDelete={handleDeletePost} 
-                  onEdit={handleEditPost} 
-                  isAdmin={isAdmin} 
-                />
-              ))
+              clubPosts.map(post => {
+                const postIdStr = typeof post._id === 'string' ? post._id : post._id?.toString();
+                const isPostLiked = likedPosts.some(id => {
+                  const likedIdStr = typeof id === 'string' ? id : id?.toString();
+                  return likedIdStr === postIdStr;
+                });
+                return (
+                  <PostCard 
+                    key={post._id} 
+                    post={post} 
+                    onLike={onLike} 
+                    isLiked={isPostLiked}
+                    onDelete={handleDeletePost} 
+                    onEdit={handleEditPost} 
+                    isAdmin={isAdmin} 
+                  />
+                );
+              })
             ) : (
               <div className="text-center py-12 bg-white rounded-xl">
                 <p className="text-gray-500">No posts yet</p>

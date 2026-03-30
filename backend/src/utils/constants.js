@@ -1,7 +1,3 @@
-/**
- * Error Messages and Constants
- */
-
 const ERROR_MESSAGES = {
   // Authentication
   AUTH: {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Trash2, Flag, MoreVertical } from 'lucide-react';
 import ReportModal from './ReportModal';
 
@@ -21,6 +21,30 @@ const ThreadCard = ({
   const [showReportModal, setShowReportModal] = useState(false);
 
   const item = reply || thread;
+  
+  // Log when thread/reply updates
+  useEffect(() => {
+    console.log('🎯 ThreadCard re-rendered:', { 
+      id: item._id,
+      likes: item.likes,
+      isLikedProp: isLiked,
+      itemIsLiked: item.isLiked
+    });
+  }, [item.likes, item.isLiked, item._id]);
+  
+  // Debug logging
+  if (!reply) {
+    console.log('🧵 ThreadCard thread:', {
+      id: thread._id,
+      username: thread.username,
+      author: thread.author,
+      userId: thread.userId,
+      content: thread.content,
+      likes: thread.likes,
+      replies: thread.replies?.length || 0
+    });
+  }
+  
   const isAuthor = currentUserId === item.userId?._id || currentUserId === item.userId;
   const canDelete = isAuthor || isAdmin;
 
@@ -54,7 +78,7 @@ const ThreadCard = ({
           <div className="flex items-center justify-between mb-2">
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-sm text-gray-900">{item.username}</h4>
+                <h4 className="font-semibold text-sm text-gray-900">{item.username || item.author || 'Unknown'}</h4>
                 {item.isReported && isAdmin && (
                   <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
                     Reported ({item.reports?.length || 0})
@@ -62,7 +86,17 @@ const ThreadCard = ({
                 )}
               </div>
               <p className="text-xs text-gray-500">
-                {reply ? new Date(reply.createdAt).toLocaleDateString() : thread.timestamp}
+                {reply ? (
+                  new Date(reply.createdAt).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                ) : (
+                  thread.timestamp || new Date(thread.createdAt).toLocaleDateString()
+                )}
               </p>
             </div>
             
@@ -124,15 +158,21 @@ const ThreadCard = ({
           
           {/* Actions */}
           <div className="flex items-center gap-4">
-            <button 
-              onClick={onLike}
-              className={`flex items-center gap-1 transition ${
-                isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-              <span className="text-sm font-medium">{item.likes || 0}</span>
-            </button>
+            {(() => {
+              const currentIsLiked = item.isLiked !== undefined ? item.isLiked : isLiked;
+              const currentLikes = item.likes || 0;
+              return (
+                <button 
+                  onClick={onLike}
+                  className={`flex items-center gap-1 transition ${
+                    currentIsLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${currentIsLiked ? 'fill-current' : ''}`} />
+                  <span className="text-sm font-medium">{currentLikes}</span>
+                </button>
+              );
+            })()}
             
             {!isNested && (
               <button 

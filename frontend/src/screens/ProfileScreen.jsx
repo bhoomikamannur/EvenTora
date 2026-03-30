@@ -4,7 +4,7 @@ import { LogOut, Edit2, Check, X } from 'lucide-react';
 import ApiService from '../services/api';
 
 const ProfileScreen = ({ joinedClubs, clubs }) => {
-  const { user, isAdmin, logout, updateUser } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [editData, setEditData] = useState({
@@ -89,15 +89,9 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
       });
 
       if (response.data) {
-        // Extract updated user from nested response
-        const updatedUserData = response.data?.data || response.data;
-        console.log('✅ Profile updated, new user data:', updatedUserData);
-        
-        // Update AuthContext with new user data
-        updateUser(updatedUserData);
-        
         setSuccess('Profile updated successfully');
         setIsEditingProfile(false);
+        // Update local user data
         setTimeout(() => setSuccess(''), 3000);
       }
     } catch (err) {
@@ -116,10 +110,6 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
       });
 
       if (response.data) {
-        // Extract updated user from nested response
-        const updatedUserData = response.data?.data || response.data;
-        updateUser(updatedUserData);
-        
         setSuccess('Password changed successfully');
         setIsChangingPassword(false);
         setPasswordData({

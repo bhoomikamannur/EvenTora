@@ -7,48 +7,101 @@ import LoadingSpinner from '../common/LoadingSpinner';
 const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [newThreadText, setNewThreadText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [likedThreads, setLikedThreads] = useState([]);
   const [likedReplies, setLikedReplies] = useState([]);
   const [showReportedOnly, setShowReportedOnly] = useState(false);
 
+  // Debug props
   useEffect(() => {
+    console.log('🧵 ThreadList mounted with props:', {
+      clubId,
+      currentUserId,
+      isAdmin,
+      clubColor
+    });
+    if (!clubId) {
+      console.error('⚠️ ThreadList missing clubId!');
+      setError('Missing club ID');
+      setLoading(false);
+      return;
+    }
+    // Clear previous threads when clubId changes to prevent stale data rendering
+    setThreads([]);
+    setLikedThreads([]);
+    setLikedReplies([]);
     loadThreads();
   }, [clubId, showReportedOnly]);
+
+  // Normalize ID to string for comparison
+  const normalizeId = (id) => {
+    if (!id) return '';
+    return typeof id === 'object' ? (id._id || id.toString()) : id.toString();
+  };
 
   const loadThreads = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('📡 Fetching threads for club:', clubId);
+      console.log('📡 Current userId:', currentUserId);
+      
       const response = showReportedOnly && isAdmin
         ? await ApiService.getReportedThreads(clubId)
         : await ApiService.getThreads(clubId);
       
-      // Extract threads from nested response structure
-      // Response: { success: true, data: [...], message: "..." }
-      const threadsData = response.data?.data || response.data || [];
-      console.log('📌 Loaded threads:', threadsData);
-      setThreads(Array.isArray(threadsData) ? threadsData : []);
+      console.log('📥 Full response:', response);
       
-      // Set initial liked status
+      // Extract threads array from paginated response
+      let threadsData = [];
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        threadsData = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        threadsData = response.data;
+      } else if (response.data?.items && Array.isArray(response.data.items)) {
+        threadsData = response.data.items;
+      }
+      
+      console.log('✅ Extracted threads:', threadsData.map(t => ({
+        id: t._id,
+        username: t.username,
+        content: t.content?.substring(0, 30),
+        likes: t.likes,
+        likedBy: t.likedBy?.length || 0,
+        replies: t.replies?.length || 0
+      })));
+      
+      setThreads(threadsData);
+      
+      // Set initial liked status - normalize all IDs to strings
+      const normalizedUserId = normalizeId(currentUserId);
       const userLikedThreads = threadsData
-        .filter(t => t.likedBy?.includes(currentUserId))
-        .map(t => t._id);
+        .filter(t => {
+          const liked = t.likedBy?.some(likeId => normalizeId(likeId) === normalizedUserId);
+          return liked;
+        })
+        .map(t => normalizeId(t._id));
+      
+      console.log('💓 User liked threads (normalized):', userLikedThreads);
       setLikedThreads(userLikedThreads);
       
       // Set initial liked replies
       const userLikedReplies = [];
       threadsData.forEach(thread => {
         thread.replies?.forEach(reply => {
-          if (reply.likedBy?.includes(currentUserId)) {
-            userLikedReplies.push(reply._id);
+          const liked = reply.likedBy?.some(likeId => normalizeId(likeId) === normalizedUserId);
+          if (liked) {
+            userLikedReplies.push(normalizeId(reply._id));
           }
         });
       });
+      console.log('💓 User liked replies (normalized):', userLikedReplies);
       setLikedReplies(userLikedReplies);
-      
     } catch (error) {
-      console.error('Failed to load threads:', error);
+      console.error('❌ Failed to load threads:', error);
+      setError(error.response?.data?.message || 'Failed to load threads');
       setThreads([]);
     } finally {
       setLoading(false);
@@ -57,18 +110,47 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
 
   const handleCreateThread = async () => {
     if (!newThreadText.trim() || submitting) return;
-    
     setSubmitting(true);
     try {
       const response = await ApiService.createThread(clubId, { content: newThreadText });
-      // Extract thread from nested response: { success: true, data: thread_object }
-      const newThread = response.data?.data || response.data;
-      console.log('✅ New thread created:', newThread);
+      console.log('✅ Thread created response:', response.data);
+      
+      // Extract thread data from nested API response structure
+      const threadData = response.data.data || response.data;
+      console.log('✅ Extracted thread data:', {
+        id: threadData._id,
+        author: threadData.author,
+        username: threadData.username,
+        userId: threadData.userId,
+        content: threadData.content?.substring(0, 50),
+        replies: threadData.replies?.length || 0,
+        likes: threadData.likes || 0
+      });
+      
+      // Ensure the thread has all required fields for display
+      const newThread = {
+        ...threadData,
+        replies: threadData.replies || [],
+        likedBy: threadData.likedBy || [],
+        likes: threadData.likes || 0,
+        isLiked: false
+      };
+      
+      console.log('✅ Prepared thread for display:', {
+        id: newThread._id,
+        author: newThread.author,
+        username: newThread.username,
+        content: newThread.content?.substring(0, 50),
+        likes: newThread.likes,
+        replies: newThread.replies?.length || 0,
+        userId: newThread.userId
+      });
+      
       setThreads([newThread, ...threads]);
       setNewThreadText('');
     } catch (error) {
       console.error('❌ Failed to create thread:', error);
-      alert('Failed to create thread');
+      alert(error.response?.data?.message || 'Failed to create thread');
     } finally {
       setSubmitting(false);
     }
@@ -76,50 +158,111 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
 
   const handleLikeThread = async (threadId) => {
     try {
+      const normId = normalizeId(threadId);
+      console.log('💓 Liking/Unliking thread:', normId);
+      console.log('📋 Current liked threads before:', likedThreads);
+      
+      // Call API
       const response = await ApiService.likeThread(threadId);
-      const unlikeData = response.data?.data || response.data;
+      console.log('✅ Like response:', response.data);
       
-      setThreads(threads.map(t => 
-        t._id === threadId 
-          ? { ...t, likes: unlikeData.likes, isLiked: unlikeData.isLiked }
-          : t
-      ));
+      // Extract from nested API response structure
+      const responseData = response.data.data || response.data;
+      console.log('✅ Extracted responseData:', responseData);
       
-      setLikedThreads(prev =>
-        prev.includes(threadId)
-          ? prev.filter(id => id !== threadId)
-          : [...prev, threadId]
-      );
+      // Update thread on likes count and data from backend
+      const updatedThreadData = responseData.thread || {};
+      const likesCount = responseData.likes || 0;
+      const isNowLiked = responseData.isLiked;
+      
+      setThreads(prevThreads => {
+        const updated = prevThreads.map(t => {
+          const matches = normalizeId(t._id) === normId;
+          if (matches) {
+            console.log('🔄 Updating thread likes from', t.likes, 'to', likesCount);
+          }
+          return matches
+            ? { ...t, ...updatedThreadData, likes: likesCount, isLiked: isNowLiked }
+            : t;
+        });
+        console.log('✅ Threads state updated');
+        return updated;
+      });
+      
+      // Update liked status - add or remove from array
+      if (isNowLiked) {
+        setLikedThreads(prev => {
+          if (!prev.includes(normId)) {
+            const updated = [...prev, normId];
+            console.log('💚 Added to liked threads:', normId, '→', updated);
+            return updated;
+          }
+          return prev;
+        });
+      } else {
+        setLikedThreads(prev => {
+          const updated = prev.filter(id => id !== normId);
+          console.log('🤍 Removed from liked threads:', normId, '→', updated);
+          return updated;
+        });
+      }
     } catch (error) {
-      console.error('Failed to like thread:', error);
+      console.error('❌ Failed to like thread:', error);
+      loadThreads();
+      alert(error.response?.data?.message || 'Failed to like thread');
     }
   };
 
   const handleReply = async (threadId, content) => {
     try {
+      console.log('💬 Adding reply to thread:', threadId);
       const response = await ApiService.addReply(threadId, { content });
-      const updatedThread = response.data?.data || response.data;
-      console.log('✅ Reply added, updated thread:', updatedThread);
-      setThreads(threads.map(t =>
-        t._id === threadId ? updatedThread : t
+      console.log('✅ Reply added:', response.data);
+      
+      // Extract thread data from nested API response structure
+      const threadData = response.data.data || response.data;
+      console.log('✅ Updated thread with replies:', {
+        threadId: threadData._id,
+        repliesCount: threadData.replies?.length || 0,
+        latestReply: threadData.replies?.[threadData.replies.length - 1]
+      });
+      
+      // Fully replace thread with updated version from server
+      setThreads(prevThreads => prevThreads.map(t =>
+        t._id === threadId ? { ...threadData } : t
       ));
     } catch (error) {
-      alert('Failed to add reply');
+      console.error('❌ Failed to add reply:', error);
+      alert(error.response?.data?.message || 'Failed to add reply');
     }
   };
 
   const handleLikeReply = async (threadId, replyId) => {
     try {
-      const response = await ApiService.likeReply(threadId, replyId);
-      const likeData = response.data?.data || response.data;
+      const normThreadId = normalizeId(threadId);
+      const normReplyId = normalizeId(replyId);
+      console.log('💓 Liking/Unliking reply:', normReplyId, 'in thread:', normThreadId);
       
-      setThreads(threads.map(t => {
-        if (t._id === threadId) {
+      const response = await ApiService.likeReply(threadId, replyId);
+      console.log('✅ Like reply response:', response.data);
+      
+      // Extract from nested API response structure
+      const responseData = response.data.data || response.data;
+      console.log('✅ Extracted responseData:', responseData);
+      
+      // Update thread with fresh data from backend
+      const updatedThread = responseData.thread || {};
+      const likesCount = responseData.likes || 0;
+      const isNowLiked = responseData.isLiked;
+      
+      setThreads(prevThreads => prevThreads.map(t => {
+        if (normalizeId(t._id) === normThreadId) {
           return {
             ...t,
-            replies: t.replies.map(r =>
-              r._id === replyId
-                ? { ...r, likes: likeData.likes, isLiked: likeData.isLiked }
+            ...updatedThread,
+            replies: (updatedThread.replies || t.replies).map(r =>
+              normalizeId(r._id) === normReplyId
+                ? { ...r, likes: likesCount, isLiked: isNowLiked }
                 : r
             )
           };
@@ -127,13 +270,24 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
         return t;
       }));
       
-      setLikedReplies(prev =>
-        prev.includes(replyId)
-          ? prev.filter(id => id !== replyId)
-          : [...prev, replyId]
-      );
+      // Update liked status
+      if (isNowLiked) {
+        setLikedReplies(prev => {
+          const updated = [...prev, normReplyId];
+          console.log('💚 Added to liked replies:', normReplyId, '→', updated);
+          return updated;
+        });
+      } else {
+        setLikedReplies(prev => {
+          const updated = prev.filter(id => id !== normReplyId);
+          console.log('🤍 Removed from liked replies:', normReplyId, '→', updated);
+          return updated;
+        });
+      }
     } catch (error) {
-      console.error('Failed to like reply:', error);
+      console.error('❌ Failed to like reply:', error);
+      loadThreads();
+      alert(error.response?.data?.message || 'Failed to like reply');
     }
   };
 
@@ -191,6 +345,32 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
     return <LoadingSpinner message="Loading discussions..." />;
   }
 
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex items-center gap-3">
+        <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
+        <div>
+          <h3 className="font-semibold text-red-900 mb-1">Error Loading Threads</h3>
+          <p className="text-red-700 text-sm">{error}</p>
+          <details className="text-red-600 text-xs mt-2 cursor-pointer">
+            <summary>Debug Info</summary>
+            <pre className="text-left bg-white p-2 mt-2 rounded overflow-auto max-h-40">
+              clubId: {clubId}
+              currentUserId: {currentUserId}
+              isAdmin: {isAdmin}
+            </pre>
+          </details>
+          <button
+            onClick={loadThreads}
+            className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const reportedCount = threads.filter(t => t.isReported).length;
 
   return (
@@ -216,7 +396,20 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
       {/* Threads List */}
       {threads.length > 0 ? (
         <div className="space-y-0">
-          {threads.map(thread => (
+          {threads.map(thread => {
+            const normId = normalizeId(thread._id);
+            const isLiked = likedThreads.includes(normId);
+            console.log('📌 Rendering thread:', {
+              id: normId,
+              username: thread.username,
+              author: thread.author,
+              content: thread.content?.substring(0, 30),
+              likes: thread.likes,
+              isLiked: isLiked,
+              likedThreadsArray: likedThreads
+            });
+            
+            return (
             <div key={thread._id}>
               <ThreadCard
                 thread={thread}
@@ -224,7 +417,7 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
                 onReply={(content) => handleReply(thread._id, content)}
                 onDelete={() => handleDeleteThread(thread._id)}
                 onReport={(reason) => handleReportThread(thread._id, reason)}
-                isLiked={likedThreads.includes(thread._id)}
+                isLiked={isLiked}
                 currentUserId={currentUserId}
                 isAdmin={isAdmin}
               />
@@ -232,25 +425,30 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin }) => {
               {/* Replies */}
               {thread.replies && thread.replies.length > 0 && (
                 <div>
-                  {thread.replies.map(reply => (
-                    <ThreadCard
-                      key={reply._id}
-                      thread={thread}
-                      reply={reply}
-                      onLike={() => handleLikeReply(thread._id, reply._id)}
-                      onReply={() => {}}
-                      onDelete={() => handleDeleteReply(thread._id, reply._id)}
-                      onReport={(reason) => handleReportReply(thread._id, reply._id, reason)}
-                      isLiked={likedReplies.includes(reply._id)}
-                      currentUserId={currentUserId}
-                      isAdmin={isAdmin}
-                      isNested={true}
-                    />
-                  ))}
+                  {thread.replies.map(reply => {
+                    const normReplyId = normalizeId(reply._id);
+                    const isReplyLiked = likedReplies.includes(normReplyId);
+                    return (
+                      <ThreadCard
+                        key={reply._id}
+                        thread={thread}
+                        reply={reply}
+                        onLike={() => handleLikeReply(thread._id, reply._id)}
+                        onReply={() => {}}
+                        onDelete={() => handleDeleteReply(thread._id, reply._id)}
+                        onReport={(reason) => handleReportReply(thread._id, reply._id, reason)}
+                        isLiked={isReplyLiked}
+                        currentUserId={currentUserId}
+                        isAdmin={isAdmin}
+                        isNested={true}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="bg-white rounded-xl p-8 text-center">

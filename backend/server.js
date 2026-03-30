@@ -3,8 +3,6 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
-const loggingMiddleware = require('./src/middleware/logger');
-const apiLimiter = require('./src/middleware/rateLimit');
 
 // Load env vars
 dotenv.config();
@@ -14,15 +12,10 @@ connectDB();
 
 const app = express();
 
-// Middleware - Apply logger first to capture all requests
-app.use(loggingMiddleware);
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Apply rate limiter to all /api routes
-app.use('/api/', apiLimiter);
 
 // Routes
 app.use('/api/auth', require('./src/routes/auth'));
@@ -41,8 +34,8 @@ app.use('/api/clubs/:clubId/media', mediaRoutes);
 app.use('/api/clubs/:clubId/threads', threadRoutes);
 app.use('/api/threads', threadActionsRoutes);
 
-// Health check route (outside of rate limiting for monitoring)
-app.get('/health', (req, res) => {
+// Health check route
+app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Eventora API is running',

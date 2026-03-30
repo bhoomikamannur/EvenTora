@@ -118,15 +118,22 @@ const HomeScreen = ({
       <div>
         <h3 className="font-semibold text-gray-900 mb-3 px-1">Latest Posts</h3>
         {posts.length > 0 ? (
-          posts.map(post => (
-            <PostCard 
-              key={post._id} 
-              post={post} 
-              onLike={onLike}
-              isLiked={likedPosts.includes(post._id)}
-              isAdmin={false}
-            />
-          ))
+          posts.map(post => {
+            const postIdStr = typeof post._id === 'string' ? post._id : post._id?.toString();
+            const isPostLiked = likedPosts.some(id => {
+              const likedIdStr = typeof id === 'string' ? id : id?.toString();
+              return likedIdStr === postIdStr;
+            });
+            return (
+              <PostCard 
+                key={post._id} 
+                post={post} 
+                onLike={onLike}
+                isLiked={isPostLiked}
+                isAdmin={false}
+              />
+            );
+          })
         ) : (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
             <p className="text-gray-500">No posts yet. Join some communities to see their posts!</p>

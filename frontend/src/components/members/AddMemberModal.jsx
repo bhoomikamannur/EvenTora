@@ -53,7 +53,7 @@ const AddMemberModal = ({ clubId, onClose, onAdd }) => {
           
           <input 
             type="email"
-            placeholder="Email *" 
+            placeholder="Email (optional)" 
             value={email} 
             onChange={e => setEmail(e.target.value)} 
             className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 

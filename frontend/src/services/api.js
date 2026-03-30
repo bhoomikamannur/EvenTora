@@ -79,6 +79,7 @@ const ApiService = {
   deletePost: (id) => api.delete(`/posts/${id}`),
   likePost: (id) => api.post(`/posts/${id}/like`),
   addComment: (id, data) => api.post(`/posts/${id}/comment`, data),
+  addPostComment: (id, text) => api.post(`/posts/${id}/comment`, { text }),
 
   // EVENTS
   getEvents: (params) => api.get('/events', { params }),

@@ -71,18 +71,54 @@ export const usePosts = (clubId = null) => {
   const likePost = async (id) => {
     try {
       const response = await ApiService.likePost(id);
-      setPosts(posts.map(p => {
-        if (p._id === id) {
-          return {
-            ...p,
-            likes: response.data.likes,
-            isLiked: response.data.isLiked
-          };
+      console.log('✅ Like response full:', response);
+      console.log('✅ Like response.data:', response.data);
+      
+      // Extract from nested API response structure
+      // The API wraps the response, so data.data contains the actual payload
+      const responseData = response.data.data || response.data;
+      console.log('✅ Extracted responseData:', responseData);
+      
+      const likesCount = responseData.likes !== undefined ? responseData.likes : responseData.likedCount || 0;
+      const isNowLiked = responseData.isLiked;
+      
+      console.log('📊 Extracted: likesCount=', likesCount, 'isNowLiked=', isNowLiked);
+      
+      // Update posts array with new like count and status
+      setPosts(prevPosts => {
+        console.log('📝 Current posts before update:', prevPosts.map(p => ({ id: p._id, likes: p.likes })));
+        
+        const updated = prevPosts.map(p => {
+          if (p._id === id) {
+            console.log('🔄 Found matching post, updating likes from', p.likes, 'to', likesCount);
+            const updatedPost = {
+              ...p,
+              likes: likesCount,
+              isLiked: isNowLiked
+            };
+            console.log('🎯 Updated post object:', { 
+              id: updatedPost._id, 
+              likes: updatedPost.likes, 
+              isLiked: updatedPost.isLiked 
+            });
+            return updatedPost;
+          }
+          return p;
+        });
+        
+        console.log('✨ All posts after update:', updated.map(p => ({ id: p._id, likes: p.likes, isLiked: p.isLiked })));
+        return updated;
+      });
+      
+      return { 
+        success: true,
+        data: {
+          likes: likesCount,
+          isLiked: isNowLiked
         }
-        return p;
-      }));
-      return { success: true };
+      };
     } catch (err) {
+      console.error('❌ Like error:', err);
       return { 
         success: false, 
         error: err.response?.data?.message || 'Failed to like post' 

@@ -144,7 +144,7 @@ exports.updatePost = async (req, res, next) => {
     const postAuthorId = post.authorId.toString();
     const currentUserId = req.user._id.toString();
     
-    if (postAuthorId !== currentUserId && req.user.role !== 'admin') {
+    if (postAuthorId !== currentUserId && req.user.userType !== 'admin') {
       return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_UPDATE);
     }
 
@@ -207,7 +207,7 @@ exports.deletePost = async (req, res, next) => {
     const postAuthorId = post.authorId.toString();
     const currentUserId = req.user._id.toString();
     
-    if (postAuthorId !== currentUserId && req.user.role !== 'admin') {
+    if (postAuthorId !== currentUserId && req.user.userType !== 'admin') {
       return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_DELETE);
     }
 
@@ -255,8 +255,19 @@ exports.likePost = async (req, res, next) => {
     await post.save();
     await user.save();
     
+    // Return full post with populated data for UI consistency
+    const updatedPost = await Post.findById(post._id)
+      .populate('clubId', 'name logo color')
+      .populate('authorId', 'username email name')
+      .populate('likedBy', 'username name');
+    
     return ApiResponse.success(res, 
-      { likes: post.likes, isLiked: !isLiked }, 
+      { 
+        post: updatedPost,
+        likes: updatedPost.likes, 
+        isLiked: !isLiked,
+        likedCount: updatedPost.likes
+      }, 
       isLiked ? 'Post unliked successfully' : 'Post liked successfully'
     );
   } catch (error) {

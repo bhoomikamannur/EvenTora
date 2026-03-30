@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
   },
   userType: {
     type: String,
-    enum: ['student', 'admin'],
+    enum: ['student', 'admin', 'organizer'],
     default: 'student'
   },
   adminClubId: {

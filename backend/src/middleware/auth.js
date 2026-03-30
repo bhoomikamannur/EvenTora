@@ -32,9 +32,20 @@ exports.protect = async (req, res, next) => {
 };
 
 exports.adminOnly = (req, res, next) => {
-  if (req.user && req.user.userType === 'admin') {
+  if (
+    req.user &&
+    (req.user.userType === 'admin' || req.user.userType === 'organizer')
+  ) {
     next();
   } else {
     res.status(403).json({ message: 'Not authorized as admin' });
+  }
+};
+
+exports.organizerOnly = (req, res, next) => {
+  if (req.user && req.user.userType === 'organizer') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as organizer' });
   }
 };

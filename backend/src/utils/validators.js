@@ -1,7 +1,3 @@
-/**
- * Input Validation Utilities
- */
-
 // Email validation
 exports.validateEmail = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
 
 const EditMediaModal = ({ media, onClose, onSave }) => {
   const [title, setTitle] = useState('');
@@ -7,6 +7,7 @@ const EditMediaModal = ({ media, onClose, onSave }) => {
   const [type, setType] = useState('youtube');
   const [link, setLink] = useState('');
   const [loading, setLoading] = useState(false);
+  const [urlError, setUrlError] = useState('');
 
   useEffect(() => {
     if (media) {
@@ -14,14 +15,51 @@ const EditMediaModal = ({ media, onClose, onSave }) => {
       setDescription(media.description || '');
       setType(media.type || 'youtube');
       setLink(media.link || '');
+      setUrlError('');
     }
   }, [media]);
+
+  // Validate URL format
+  const validateUrl = (url) => {
+    if (!url.trim()) {
+      setUrlError('URL is required');
+      return false;
+    }
+    try {
+      new URL(url.trim());
+      setUrlError('');
+      return true;
+    } catch (error) {
+      setUrlError('Invalid URL format. Please enter a valid URL (e.g., https://example.com/video.mp4)');
+      return false;
+    }
+  };
+
+  const handleLinkChange = (e) => {
+    setLink(e.target.value);
+    if (e.target.value.trim()) {
+      validateUrl(e.target.value);
+    } else {
+      setUrlError('');
+    }
+  };
 
   if (!media) return null;
 
   const handleSave = async () => {
-    if (!title.trim() || !link.trim()) {
-      alert('Please fill in title and link');
+    if (!title.trim()) {
+      alert('Please enter a title');
+      return;
+    }
+
+    if (!link.trim()) {
+      alert('Please enter a URL');
+      return;
+    }
+
+    // Validate URL before submitting
+    if (!validateUrl(link)) {
+      alert('Please enter a valid URL');
       return;
     }
 
@@ -83,17 +121,27 @@ const EditMediaModal = ({ media, onClose, onSave }) => {
             <option value="other">Other Link</option>
           </select>
           
-          <input 
-            value={link} 
-            onChange={e => setLink(e.target.value)} 
-            placeholder="Link URL *"
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
-          />
+          <div>
+            <input 
+              value={link} 
+              onChange={handleLinkChange}
+              placeholder="Link URL *"
+              className={`w-full p-3 border rounded-xl focus:outline-none focus:ring-2 ${
+                urlError ? 'border-red-500 focus:ring-red-400' : 'border-gray-300 focus:ring-purple-400'
+              }`}
+            />
+            {urlError && (
+              <div className="mt-2 flex items-start gap-2 text-red-600 text-sm">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>{urlError}</span>
+              </div>
+            )}
+          </div>
           
           <div className="flex gap-2">
             <button 
               onClick={handleSave} 
-              disabled={loading}
+              disabled={loading || urlError || !link.trim()}
               className="flex-1 py-3 rounded-xl font-semibold text-white disabled:opacity-50 transition" 
               style={{ background: '#ab83c3' }}
             >

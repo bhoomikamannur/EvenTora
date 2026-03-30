@@ -4,7 +4,6 @@ import SplashScreen from './components/common/SplashScreen';
 import LoginScreen from './components/common/LoginScreen';
 import NavBar from './components/common/NavBar';
 import BottomNav from './components/common/BottomNav';
-import Toast from './components/common/Toast';
 import HomeScreen from './screens/HomeScreen';
 import CommunitiesScreen from './screens/CommunitiesScreen';
 import CommunityScreen from './screens/CommunityScreen';
@@ -24,7 +23,6 @@ const AppContent = () => {
   const [selectedClub, setSelectedClub] = useState(null);
   const [joinedClubs, setJoinedClubs] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
-  const [toast, setToast] = useState(null);
   const [rsvpEvents, setRsvpEvents] = useState([]);
   const [media, setMedia] = useState([]);
 
@@ -42,80 +40,125 @@ const AppContent = () => {
 
   const loadUserData = async () => {
     try {
-      const response = await ApiService.getMe();
-      console.log('📦 Raw response:', response);
+      const userData = await ApiService.getMe();
+      console.log('📥 User data loaded:', userData.data);
       
-      // Extract user from nested response structure
-      // Response structure: { data: { success: true, data: user, ... }, ... }
-      const user = response.data?.data || response.data;
-      console.log('👤 User object:', user);
+      // Handle nested API response structure
+      const userPayload = userData.data.data || userData.data;
+      console.log('📊 User payload extracted:', userPayload);
       
-      // Extract joined clubs - handle both array of objects and array of IDs
-      const clubs = user?.joinedClubs || [];
-      const clubIds = Array.isArray(clubs) 
-        ? clubs.map(c => (typeof c === 'object' ? c._id : c)).filter(Boolean)
-        : [];
-        
-      console.log('🏢 Extracted club IDs:', clubIds);
+      const clubIds = (userPayload.joinedClubs || []).map(c => c._id || c);
+      console.log('📋 joinedClubs from backend:', clubIds);
       setJoinedClubs(clubIds);
-      setLikedPosts(user?.likedPosts || []);
-      setRsvpEvents(user?.rsvpEvents || []);
+      setLikedPosts(userPayload.likedPosts || []);
+      setRsvpEvents(userPayload.rsvpEvents || []);
     } catch (error) {
       console.error('Failed to load user data:', error);
     }
   };
 
   const handleJoinClub = async (clubId) => {
-    const alreadyJoined = joinedClubs.some(id => {
-      return (typeof id === 'string') ? id === clubId : id._id === clubId;
-    });
-    
-    if (!alreadyJoined) {
-      try {
-        setToast({ type: 'success', message: '✅ Joining community...' });
-        
-        // Call join API
-        const result = await joinClub(clubId);
-        
-        if (result.success) {
-          // Immediately add to local state for instant UI update
-          setJoinedClubs([...joinedClubs, clubId]);
-          console.log('✅ Club added to local state:', clubId);
-          
-          // Then reload fresh data from backend to confirm
-          setTimeout(async () => {
-            await loadUserData();
-            console.log('✅ User data reloaded from backend');
-          }, 100);
-        } else {
-          setToast({ type: 'error', message: `❌ ${result.error}` });
-        }
-      } catch (error) {
-        console.error('Join error:', error);
-        setToast({ type: 'error', message: '❌ Failed to join community' });
+    try {
+      if (joinedClubs.includes(clubId)) {
+        console.log('✅ Already joined this club');
+        return;
       }
-    } else {
-      setToast({ type: 'info', message: '✅ Already a member!' });
+      
+      console.log('🔗 Attempting to join club:', clubId);
+      const result = await joinClub(clubId);
+      
+      if (result.success) {
+        console.log('✅ Successfully joined club');
+        setJoinedClubs(prev => {
+          const updated = [...prev, clubId];
+          console.log('📝 Updated joinedClubs:', updated);
+          return updated;
+        });
+        await loadUserData();
+      } else if (result.error && result.error.toLowerCase().includes('already joined')) {
+        // Backend confirms user is already joined - sync frontend state
+        console.log('⚠️ Backend says already joined, syncing state...');
+        setJoinedClubs(prev => {
+          if (prev.includes(clubId)) {
+            console.log('✅ State already has club');
+            return prev;
+          }
+          console.log('✅ Adding club to joinedClubs state');
+          return [...prev, clubId];
+        });
+        // Reload user data to fully sync
+        await loadUserData();
+      } else if (result.error) {
+        console.error('❌ Join failed:', result.error);
+        alert('Failed to join: ' + result.error);
+      }
+    } catch (error) {
+      console.error('❌ Join error:', error);
+      alert('Failed to join club: ' + error.message);
     }
   };
 
   const handleLikePost = async (postId) => {
-    const result = await likePost(postId);
-    if (result.success) {
-      setLikedPosts(prev => 
-        prev.includes(postId) 
-          ? prev.filter(id => id !== postId) 
-          : [...prev, postId]
-      );
+    try {
+      // Ensure postId is a string for consistency
+      const postIdStr = typeof postId === 'string' ? postId : postId?.toString();
+      
+      console.log('💓 Liking post:', postIdStr);
+      const result = await likePost(postIdStr);
+      console.log('✅ Like result:', result);
+      
+      if (result.success) {
+        // Sync with backend response: true = liked, false = unliked
+        if (result.data.isLiked) {
+          setLikedPosts(prev => {
+            const updated = [...new Set([...prev, postIdStr])];
+            console.log('✅ Added to liked posts. Array now:', updated);
+            return updated;
+          });
+        } else {
+          setLikedPosts(prev => {
+            const updated = prev.filter(id => {
+              const idStr = typeof id === 'string' ? id : id?.toString();
+              return idStr !== postIdStr;
+            });
+            console.log('✅ Removed from liked posts. Array now:', updated);
+            return updated;
+          });
+        }
+      } else {
+        console.error('❌ Like failed:', result.error);
+        alert(result.error || 'Failed to like post');
+      }
+    } catch (error) {
+      console.error('❌ Exception while liking post:', error);
+      alert('Failed to like post. Please try again.');
     }
   };
 
   const handleRSVPEvent = async (eventId) => {
-    if (!rsvpEvents.includes(eventId)) {
-      const result = await rsvpEvent(eventId);
-      if (result.success) {
-        setRsvpEvents([...rsvpEvents, eventId]);
+    try {
+      console.log('🎉 RSVP clicked for event:', eventId);
+      console.log('✅ Already RSVPd to:', rsvpEvents);
+      
+      if (!rsvpEvents.includes(eventId)) {
+        console.log('📤 Calling rsvpEvent API...');
+        const result = await rsvpEvent(eventId);
+        console.log('📥 RSVP result:', result);
+        
+        if (result.success) {
+          console.log('✅ RSVP successful, updating state...');
+          setRsvpEvents([...rsvpEvents, eventId]);
+        } else {
+          console.error('❌ RSVP failed:', result.error);
+          alert(result.error || 'Failed to RSVP');
+        }
+      } else {
+        console.log('⚠️ Already RSVPd to this event');
+        alert('You have already RSVPd to this event');
       }
+    } catch (error) {
+      console.error('❌ Exception in handleRSVPEvent:', error);
+      alert('Error: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -192,7 +235,6 @@ const AppContent = () => {
       <div className="max-w-4xl mx-auto px-4 py-20 pb-24">
         {selectedClub ? (
           <CommunityScreen
-            key={`community-${selectedClub}-${joinedClubs.length}`}
             clubId={selectedClub}
             onBack={() => setSelectedClub(null)}
             joinedClubs={joinedClubs}
@@ -243,7 +285,6 @@ const AppContent = () => {
                 events={events}
                 isAdmin={isAdmin}
                 onAddEvent={handleEventCreated}
-                clubs={clubs}
               />
             )}
 
@@ -259,15 +300,6 @@ const AppContent = () => {
 
       {!selectedClub && (
         <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
-      )}
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-          duration={3000}
-        />
       )}
     </div>
   );

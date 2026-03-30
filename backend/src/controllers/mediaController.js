@@ -74,13 +74,19 @@ exports.createMedia = async (req, res, next) => {
     }
 
     // Validate link URL
+    console.log('🔗 Validating link URL:', link);
     if (!validators.validateUrl(link)) {
-      return ApiResponse.badRequest(res, 'Invalid media link URL format');
+      console.error('❌ Invalid URL:', link);
+      return ApiResponse.badRequest(res, 'Invalid media link URL format. Please provide a valid URL like https://example.com/video.mp4');
     }
 
     // Validate thumbnail if provided
-    if (thumbnail && !validators.validateUrl(thumbnail)) {
-      return ApiResponse.badRequest(res, 'Invalid thumbnail URL format');
+    if (thumbnail) {
+      console.log('🔗 Validating thumbnail URL:', thumbnail);
+      if (!validators.validateUrl(thumbnail)) {
+        console.error('❌ Invalid thumbnail URL:', thumbnail);
+        return ApiResponse.badRequest(res, 'Invalid thumbnail URL format');
+      }
     }
 
     const media = await Media.create({

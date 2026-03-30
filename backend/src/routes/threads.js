@@ -16,7 +16,7 @@ router.route('/')
   .get(protect, getClubThreads)
   .post(protect, createThread);
 
-// Get reported threads (Admin only)
+// Get reported threads (Admin only) - MUST come before /:id routes
 router.get('/reported', protect, adminOnly, getReportedThreads);
 
 // Thread like/unlike routes
