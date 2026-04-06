@@ -10,8 +10,8 @@ const AddEventModal = ({ onClose, onAdd, clubId }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!title || !venue || !date || !time) {
-      alert('Please fill in all required fields');
+    if (!title || !venue || !date || !time || !clubId) {
+      alert('Please fill in all required fields. If issue persists, you must be an admin of a club.');
       return;
     }
 

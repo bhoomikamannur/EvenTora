@@ -21,6 +21,7 @@ const AppContent = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedClub, setSelectedClub] = useState(null);
+  const [activeClubTab, setActiveClubTab] = useState('posts');
   const [joinedClubs, setJoinedClubs] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [rsvpEvents, setRsvpEvents] = useState([]);
@@ -209,7 +210,10 @@ const AppContent = () => {
     }
     return result;
   };
-
+  const handleClubClick = (clubId, tab = 'posts') => {
+    setSelectedClub(clubId);
+    setActiveClubTab(tab);
+  };
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
@@ -236,7 +240,10 @@ const AppContent = () => {
         {selectedClub ? (
           <CommunityScreen
             clubId={selectedClub}
-            onBack={() => setSelectedClub(null)}
+            onBack={() => {
+              setSelectedClub(null);
+              setActiveClubTab('posts');
+            }}
             joinedClubs={joinedClubs}
             onJoin={handleJoinClub}
             clubs={clubs}
@@ -254,6 +261,7 @@ const AppContent = () => {
             onEventUpdated={handleEventUpdated}
             onEventDeleted={handleEventDeleted}
             media={media}
+            activeTab={activeClubTab}
           />
         ) : (
           <>
@@ -265,7 +273,7 @@ const AppContent = () => {
                 joinedClubs={joinedClubs}
                 onLike={handleLikePost}
                 likedPosts={likedPosts}
-                onClubClick={setSelectedClub}
+                onClubClick={handleClubClick}
                 media={media}
                 loading={loading}
               />
@@ -284,6 +292,7 @@ const AppContent = () => {
               <CalendarScreen
                 events={events}
                 isAdmin={isAdmin}
+                adminClubId={user?.adminClubId}
                 onAddEvent={handleEventCreated}
               />
             )}

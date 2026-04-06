@@ -13,6 +13,7 @@ import EditPostModal from '../components/posts/EditPostModal';
 import EditEventModal from '../components/events/EditEventModal';
 import EditMediaModal from '../components/media/EditMediaModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import FloatingActionButton from '../components/common/FloatingActionButton';
 import ApiService from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -35,9 +36,10 @@ const CommunityScreen = ({
   onEventCreated,
   onEventUpdated,
   onEventDeleted,
-  media
+  media,
+  activeTab: initialTab = 'posts'
 }) => {
-  const [activeTab, setActiveTab] = useState('posts');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [showAddPost, setShowAddPost] = useState(false);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
@@ -58,7 +60,27 @@ const CommunityScreen = ({
 
   const { user } = useAuth();
 
-  const club = clubs.find(c => c._id === clubId);
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  const club = clubs.find(c => {
+    const clubIdStr = typeof clubId === 'string' ? clubId : clubId?.toString();
+    const cIdStr = typeof c._id === 'string' ? c._id : c._id?.toString();
+    return cIdStr === clubIdStr;
+  });
+
+  // Debug logging
+  useEffect(() => {
+    if (!club) {
+      console.log('❌ Club not found. Details:', {
+        clubId,
+        clubIdType: typeof clubId,
+        clubsCount: clubs.length,
+        clubs: clubs.map(c => ({ id: c._id, name: c.name }))
+      });
+    }
+  }, [clubId, clubs, club]);
   // Check if clubId is in joinedClubs array - handle both string IDs and objects
   // Admin users managing this club are automatically considered "joined"
   const isJoined = (user?.userType === 'admin' && user?.adminClubId === clubId) || 
@@ -283,10 +305,11 @@ const CommunityScreen = ({
   if (!club) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Club not found</p>
+        <p className="text-gray-500 mb-2">Club not found</p>
+        <p className="text-xs text-gray-400 mb-4">ClubID: {clubId}</p>
         <button 
           onClick={onBack}
-          className="mt-4 px-6 py-2 bg-purple-500 text-white rounded-xl"
+          className="mt-4 px-6 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition"
         >
           Go Back
         </button>
@@ -373,15 +396,6 @@ const CommunityScreen = ({
         {/* Posts Tab */}
         {activeTab === 'posts' && (
           <div>
-            {isAdmin && (
-              <button 
-                onClick={() => setShowAddPost(true)}
-                className="w-full mb-4 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition hover:opacity-90" 
-                style={{ background: club.color }}
-              >
-                <Plus className="w-5 h-5" /> Add Post
-              </button>
-            )}
             {clubPosts.length > 0 ? (
               clubPosts.map(post => {
                 const postIdStr = typeof post._id === 'string' ? post._id : post._id?.toString();
@@ -412,15 +426,6 @@ const CommunityScreen = ({
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
           <div>
-            {isAdmin && (
-              <button 
-                onClick={() => setShowAddEvent(true)}
-                className="w-full mb-4 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition hover:opacity-90" 
-                style={{ background: club.color }}
-              >
-                <Plus className="w-5 h-5" /> Add Event
-              </button>
-            )}
             {clubEvents.length > 0 ? (
               clubEvents.map(event => (
                 <EventCard
@@ -452,15 +457,6 @@ const CommunityScreen = ({
               <LoadingSpinner message="Loading members..." />
             ) : (
               <div className="space-y-3">
-                {isAdmin && (
-                  <button 
-                    onClick={() => setShowAddMember(true)}
-                    className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition hover:opacity-90" 
-                    style={{ background: club.color }}
-                  >
-                    <Plus className="w-5 h-5" /> Add Member
-                  </button>
-                )}
                 {members.length > 0 ? (
                   members.map(member => (
                     <MemberCard
@@ -493,15 +489,6 @@ const CommunityScreen = ({
               <LoadingSpinner message="Loading media..." />
             ) : (
               <div>
-                {isAdmin && (
-                  <button 
-                    onClick={() => setShowAddMedia(true)}
-                    className="w-full mb-4 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition hover:opacity-90" 
-                    style={{ background: club.color }}
-                  >
-                    <Plus className="w-5 h-5" /> Add Media
-                  </button>
-                )}
                 {clubMedia.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {clubMedia.map(item => (
@@ -545,6 +532,40 @@ const CommunityScreen = ({
           </div>
         )}
       </div>
+
+      {/* Floating Action Button */}
+      {isAdmin && (
+        <div>
+          {activeTab === 'posts' && (
+            <FloatingActionButton 
+              onClick={() => setShowAddPost(true)}
+              color={club.color}
+              tooltip="Add Post"
+            />
+          )}
+          {activeTab === 'announcements' && (
+            <FloatingActionButton 
+              onClick={() => setShowAddEvent(true)}
+              color={club.color}
+              tooltip="Add Event"
+            />
+          )}
+          {activeTab === 'members' && (
+            <FloatingActionButton 
+              onClick={() => setShowAddMember(true)}
+              color={club.color}
+              tooltip="Add Member"
+            />
+          )}
+          {activeTab === 'media' && (
+            <FloatingActionButton 
+              onClick={() => setShowAddMedia(true)}
+              color={club.color}
+              tooltip="Add Media"
+            />
+          )}
+        </div>
+      )}
 
       {/* Modals */}
       {showAddPost && (

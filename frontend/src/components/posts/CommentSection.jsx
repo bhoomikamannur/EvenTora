@@ -21,6 +21,7 @@ const CommentSection = ({ post, onUpdate }) => {
 
       if (updatedPost?.comments) {
         setComments(updatedPost.comments);
+        setNewComment('');
         onUpdate && onUpdate(updatedPost);
       }
     } catch (err) {
@@ -32,13 +33,14 @@ const CommentSection = ({ post, onUpdate }) => {
     console.log("🗑️ Deleting comment:", commentId);
 
     try {
-        const res = await ApiService.deleteComment(post._id, commentId);
+        const res = await ApiService.deletePostComment(post._id, commentId);
         console.log("✅ Delete response:", res);
 
         const updatedPost = res?.data?.data;
 
         if (updatedPost?.comments) {
         setComments(updatedPost.comments);
+        setActiveMenu(null);
         onUpdate && onUpdate(updatedPost);
         }
     } catch (err) {
@@ -52,13 +54,13 @@ const CommentSection = ({ post, onUpdate }) => {
       {/* COMMENTS LIST */}
       <div className="max-h-60 overflow-y-auto space-y-3 mt-3">
         {comments.length > 0 ? (
-          comments.map((c) => (
+          [...comments].reverse().map((c) => (
             <div key={c._id} className="flex justify-between bg-gray-50 p-3 rounded-xl relative">
 
               <div>
                 <p className="text-sm font-semibold">{c.username || 'Anonymous'}</p>
                 <p className="text-xs text-gray-500">
-                  {new Date(c.createdAt).toLocaleDateString()}
+                  {new Date(c.createdAt).toLocaleDateString()} {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
                 <p className="text-sm mt-1">{c.text}</p>
               </div>

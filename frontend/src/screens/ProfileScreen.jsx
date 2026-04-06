@@ -4,7 +4,7 @@ import { LogOut, Edit2, Check, X } from 'lucide-react';
 import ApiService from '../services/api';
 
 const ProfileScreen = ({ joinedClubs, clubs }) => {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout, loadUser } = useAuth();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [editData, setEditData] = useState({
@@ -91,7 +91,8 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
       if (response.data) {
         setSuccess('Profile updated successfully');
         setIsEditingProfile(false);
-        // Update local user data
+        // Refresh user data from server
+        await loadUser();
         setTimeout(() => setSuccess(''), 3000);
       }
     } catch (err) {
@@ -117,6 +118,8 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
           newPassword: '',
           confirmPassword: ''
         });
+        // Refresh user data from server
+        await loadUser();
         setTimeout(() => setSuccess(''), 3000);
       }
     } catch (err) {

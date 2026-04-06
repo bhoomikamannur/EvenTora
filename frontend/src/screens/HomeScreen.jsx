@@ -51,11 +51,14 @@ const HomeScreen = ({
             .filter(e => !e.isAcademic)
             .slice(0, 3)
             .map(event => {
-              const club = clubs.find(c => c._id === event.clubId);
+              // Extract clubId - could be string or object
+              const clubId = typeof event.clubId === 'string' ? event.clubId : event.clubId?._id;
+              const club = clubs.find(c => c._id === clubId);
               return (
-                <div 
-                  key={event._id} 
-                  className="p-3 rounded-xl" 
+                <button 
+                  key={event._id}
+                  onClick={() => onClubClick(clubId, 'announcements')}
+                  className="w-full p-3 rounded-xl text-left hover:shadow-md transition" 
                   style={{ background: `${club?.color}15` }}
                 >
                   <div className="flex items-center gap-2 mb-1">
@@ -66,7 +69,7 @@ const HomeScreen = ({
                   <p className="text-xs text-gray-600 mt-1">
                     {new Date(event.date).toLocaleDateString()} • {event.time}
                   </p>
-                </div>
+                </button>
               );
             })}
         </div>
