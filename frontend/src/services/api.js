@@ -74,7 +74,19 @@ const ApiService = {
   // POSTS
   getPosts: (params) => api.get('/posts', { params }),
   getPost: (id) => api.get(`/posts/${id}`),
-  createPost: (data) => api.post('/posts', data),
+  createPost: (data) => {
+    // Handle both FormData and JSON
+    if (data instanceof FormData) {
+      console.log('📤 Sending FormData to server...');
+      return api.post('/posts', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+    }
+    console.log('📤 Sending JSON to server...');
+    return api.post('/posts', data);
+  },
   updatePost: (id, data) => api.put(`/posts/${id}`, data),
   deletePost: (id) => api.delete(`/posts/${id}`),
   likePost: (id) => api.post(`/posts/${id}/like`),

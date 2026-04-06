@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AddEventModal from './AddEventModal';
 
-const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent }) => {
+const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showAddEvent, setShowAddEvent] = useState(false);
 
@@ -99,7 +99,8 @@ const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent }) => {
                   {dayEvents.map(event => (
                     <div 
                       key={event._id} 
-                      className="text-xs p-1 rounded mb-1 truncate" 
+                      onClick={() => onEventClick && onEventClick(event)}
+                      className="text-xs p-1 rounded mb-1 truncate cursor-pointer hover:opacity-80 transition" 
                       style={{ 
                         background: event.isAcademic ? '#fef3c7' : '#ddd6fe' 
                       }}

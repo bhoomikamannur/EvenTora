@@ -68,21 +68,30 @@ exports.getPostById = async (req, res, next) => {
 // @access  Private
 exports.createPost = async (req, res, next) => {
   try {
-    const { clubId, eventTitle, caption, images } = req.body;
+    const { clubId, eventTitle, caption } = req.body;
+    
+    console.log('📨 Creating post with:');
+    console.log('  clubId:', clubId);
+    console.log('  eventTitle:', eventTitle);
+    console.log('  caption:', caption);
+    console.log('  files received:', req.files?.length || 0);
     
     // Validate required fields
     if (!clubId || !eventTitle || !caption) {
+      console.error('❌ Missing required field');
       return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD);
     }
 
     // Validate clubId format
     if (!validators.validateObjectId(clubId)) {
+      console.error('❌ Invalid clubId format');
       return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
     }
 
     // Validate club exists
     const club = await Club.findById(clubId);
     if (!club) {
+      console.error('❌ Club not found:', clubId);
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
 
@@ -95,23 +104,27 @@ exports.createPost = async (req, res, next) => {
       return ApiResponse.badRequest(res, 'Caption must be between 1 and 5000 characters');
     }
 
-    // Validate images array if provided
-    if (images && Array.isArray(images)) {
-      for (let img of images) {
-        if (!validators.validateUrl(img)) {
-          return ApiResponse.badRequest(res, 'Invalid image URL format');
-        }
-      }
+    // Handle uploaded images
+    const images = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        console.log(`📸 File uploaded: ${file.filename} (${file.size} bytes)`);
+        images.push(file.path);
+      });
     }
+
+    console.log('📁 Images array:', images);
 
     const post = await Post.create({
       clubId,
       eventTitle: eventTitle.trim(),
       caption: validators.sanitizeInput(caption),
-      images: images || [],
+      images: images,
       author: club.name,
       authorId: req.user._id
     });
+
+    console.log('✅ Post created:', post._id);
 
     const populatedPost = await Post.findById(post._id)
       .populate('clubId', 'name logo color')
@@ -119,6 +132,7 @@ exports.createPost = async (req, res, next) => {
     
     return ApiResponse.created(res, populatedPost, ERROR_MESSAGES.OPERATIONS.CREATE_SUCCESS);
   } catch (error) {
+    console.error('❌ Error creating post:', error);
     next(error);
   }
 };

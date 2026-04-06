@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Share2, Edit2, Trash2 } from 'lucide-react';
 import CommentSection from './CommentSection';
+import { getImageUrl } from '../../utils/helpers';
 
 const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }) => {
   const [showComments, setShowComments] = useState(false);
@@ -34,7 +35,14 @@ const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">{post.author}</h4>
-              <p className="text-xs text-gray-500">{post.timestamp}</p>
+              <p className="text-xs text-gray-500">
+                {post.timestamp}
+                {post.createdAt && (
+                  <span className="ml-2" title={new Date(post.createdAt).toLocaleString()}>
+                    • {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
 
@@ -53,10 +61,19 @@ const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }
         <h3 className="font-bold text-lg mb-2">{post.eventTitle}</h3>
         <p className="text-gray-700 mb-3">{post.caption}</p>
 
-        {post.images && (
+        {post.images && post.images.length > 0 && (
           <div className="grid grid-cols-2 gap-2 mb-3">
             {post.images.slice(0, 4).map((img, idx) => (
-              <img key={idx} src={img} alt="" className="w-full h-40 object-cover rounded-lg" />
+              <img 
+                key={idx} 
+                src={getImageUrl(img)} 
+                alt="Post" 
+                className="w-full h-40 object-cover rounded-lg"
+                onError={(e) => {
+                  console.error(`❌ Image failed to load: ${img}`);
+                  e.target.style.display = 'none';
+                }}
+              />
             ))}
           </div>
         )}

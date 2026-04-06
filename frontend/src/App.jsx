@@ -217,6 +217,18 @@ const AppContent = () => {
     setActiveClubTab(tab);
   };
 
+  const handleEventClick = (event) => {
+    const clubId = typeof event.clubId === 'string' ? event.clubId : event.clubId?._id;
+    setSelectedClub(clubId);
+    setActiveClubTab('announcements');
+    
+    // Store resource info for scrolling
+    setScrollToResource({
+      type: 'event',
+      id: event._id
+    });
+  };
+
   const generateNotifications = () => {
     const notifications = [];
 
@@ -376,6 +388,7 @@ const AppContent = () => {
                 isAdmin={isAdmin}
                 adminClubId={user?.adminClubId}
                 onAddEvent={handleEventCreated}
+                onEventClick={handleEventClick}
               />
             )}
 
