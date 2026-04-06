@@ -37,7 +37,9 @@ const CommunityScreen = ({
   onEventUpdated,
   onEventDeleted,
   media,
-  activeTab: initialTab = 'posts'
+  activeTab: initialTab = 'posts',
+  scrollToResource = null,
+  onScrollComplete = null
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showAddPost, setShowAddPost] = useState(false);
@@ -63,6 +65,25 @@ const CommunityScreen = ({
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    if (scrollToResource) {
+      // Delay slightly to ensure DOM is rendered
+      setTimeout(() => {
+        const elementId = `${scrollToResource.type}-${scrollToResource.id}`;
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Highlight the element briefly
+          element.style.backgroundColor = '#fff3cd';
+          setTimeout(() => {
+            element.style.backgroundColor = '';
+          }, 2000);
+        }
+        onScrollComplete && onScrollComplete();
+      }, 100);
+    }
+  }, [scrollToResource, onScrollComplete]);
 
   const club = clubs.find(c => {
     const clubIdStr = typeof clubId === 'string' ? clubId : clubId?.toString();
@@ -404,15 +425,16 @@ const CommunityScreen = ({
                   return likedIdStr === postIdStr;
                 });
                 return (
-                  <PostCard 
-                    key={post._id} 
-                    post={post} 
-                    onLike={onLike} 
-                    isLiked={isPostLiked}
-                    onDelete={handleDeletePost} 
-                    onEdit={handleEditPost} 
-                    isAdmin={isAdmin} 
-                  />
+                  <div key={post._id} id={`post-${post._id}`}>
+                    <PostCard 
+                      post={post} 
+                      onLike={onLike} 
+                      isLiked={isPostLiked}
+                      onDelete={handleDeletePost} 
+                      onEdit={handleEditPost} 
+                      isAdmin={isAdmin} 
+                    />
+                  </div>
                 );
               })
             ) : (
@@ -428,15 +450,16 @@ const CommunityScreen = ({
           <div>
             {clubEvents.length > 0 ? (
               clubEvents.map(event => (
-                <EventCard
-                  key={event._id}
-                  event={event}
-                  onRSVP={onRSVP}
-                  hasRSVPd={rsvpEvents.includes(event._id)}
-                  onDelete={handleDeleteEvent}
-                  isAdmin={isAdmin}
-                  onEdit={handleEditEvent}
-                />
+                <div key={event._id} id={`event-${event._id}`}>
+                  <EventCard
+                    event={event}
+                    onRSVP={onRSVP}
+                    hasRSVPd={rsvpEvents.includes(event._id)}
+                    onDelete={handleDeleteEvent}
+                    isAdmin={isAdmin}
+                    onEdit={handleEditEvent}
+                  />
+                </div>
               ))
             ) : (
               <div className="text-center py-12 bg-white rounded-xl">

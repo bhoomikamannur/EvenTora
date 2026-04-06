@@ -26,6 +26,8 @@ const AppContent = () => {
   const [likedPosts, setLikedPosts] = useState([]);
   const [rsvpEvents, setRsvpEvents] = useState([]);
   const [media, setMedia] = useState([]);
+  const [seenNotifications, setSeenNotifications] = useState([]);
+  const [scrollToResource, setScrollToResource] = useState(null);
 
   // Use custom hooks
   const { posts, loading: postsLoading, createPost, updatePost, deletePost, likePost, refetch: refetchPosts } = usePosts();
@@ -214,6 +216,78 @@ const AppContent = () => {
     setSelectedClub(clubId);
     setActiveClubTab(tab);
   };
+
+  const generateNotifications = () => {
+    const notifications = [];
+
+    // Get joined club IDs (normalize to strings)
+    const joinedClubIds = joinedClubs.map(id => 
+      typeof id === 'string' ? id : id?._id || id
+    );
+
+    // Filter posts from joined clubs
+    posts.forEach(post => {
+      const postClubId = typeof post.clubId === 'string' ? post.clubId : post.clubId?._id;
+      if (joinedClubIds.includes(postClubId) && !seenNotifications.includes(post._id)) {
+        const club = clubs.find(c => {
+          const cId = typeof c._id === 'string' ? c._id : c._id?.toString();
+          return cId === postClubId;
+        });
+        if (club) {
+          notifications.push({
+            id: `post-${post._id}`,
+            type: 'post',
+            title: post.content,
+            clubId: postClubId,
+            clubName: club.name,
+            clubLogo: club.logo,
+            resourceId: post._id,
+            resourceType: 'post'
+          });
+        }
+      }
+    });
+
+    // Filter events/announcements from joined clubs
+    events.forEach(event => {
+      const eventClubId = typeof event.clubId === 'string' ? event.clubId : event.clubId?._id;
+      if (joinedClubIds.includes(eventClubId) && !seenNotifications.includes(event._id)) {
+        const club = clubs.find(c => {
+          const cId = typeof c._id === 'string' ? c._id : c._id?.toString();
+          return cId === eventClubId;
+        });
+        if (club) {
+          notifications.push({
+            id: `event-${event._id}`,
+            type: 'announcement',
+            title: event.title,
+            clubId: eventClubId,
+            clubName: club.name,
+            clubLogo: club.logo,
+            resourceId: event._id,
+            resourceType: 'event'
+          });
+        }
+      }
+    });
+
+    return notifications.slice(0, 10); // Limit to 10 latest notifications
+  };
+
+  const handleNotificationClick = (notification) => {
+    const clubId = notification.clubId;
+    setSelectedClub(clubId);
+    setActiveClubTab(notification.type === 'announcement' ? 'announcements' : 'posts');
+    
+    // Store resource info for scrolling
+    setScrollToResource({
+      type: notification.resourceType,
+      id: notification.resourceId
+    });
+    
+    // Mark as seen
+    setSeenNotifications(prev => [...prev, notification.resourceId]);
+  };
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
@@ -231,10 +305,15 @@ const AppContent = () => {
   }
 
   const loading = postsLoading || eventsLoading || clubsLoading;
+  const notifications = generateNotifications();
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar title={selectedClub ? null : 'Eventora'} />
+      <NavBar 
+        title={selectedClub ? null : 'Eventora'} 
+        notifications={notifications}
+        onNotificationClick={handleNotificationClick}
+      />
 
       <div className="max-w-4xl mx-auto px-4 py-20 pb-24">
         {selectedClub ? (
@@ -243,6 +322,7 @@ const AppContent = () => {
             onBack={() => {
               setSelectedClub(null);
               setActiveClubTab('posts');
+              setScrollToResource(null);
             }}
             joinedClubs={joinedClubs}
             onJoin={handleJoinClub}
@@ -262,6 +342,8 @@ const AppContent = () => {
             onEventDeleted={handleEventDeleted}
             media={media}
             activeTab={activeClubTab}
+            scrollToResource={scrollToResource}
+            onScrollComplete={() => setScrollToResource(null)}
           />
         ) : (
           <>
