@@ -7,7 +7,8 @@ const {
   updatePost,
   deletePost,
   likePost,
-  addComment
+  addComment,
+  deleteComment
 } = require('../controllers/postController');
 const { protect } = require('../middleware/auth');
 
@@ -22,5 +23,6 @@ router.route('/:id')
 
 router.post('/:id/like', protect, likePost);
 router.post('/:id/comment', protect, addComment);
+router.delete('/:postId/comment/:commentId', protect, deleteComment);
 
 module.exports = router;

@@ -80,6 +80,8 @@ const ApiService = {
   likePost: (id) => api.post(`/posts/${id}/like`),
   addComment: (id, data) => api.post(`/posts/${id}/comment`, data),
   addPostComment: (id, text) => api.post(`/posts/${id}/comment`, { text }),
+  deletePostComment: (postId, commentId) => api.delete(`/posts/${postId}/comment/${commentId}`),
+  reportPostComment: (postId, commentId, reason) => api.post(`/posts/${postId}/comment/${commentId}/report`, { reason }),
 
   // EVENTS
   getEvents: (params) => api.get('/events', { params }),

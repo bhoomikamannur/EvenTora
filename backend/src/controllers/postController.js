@@ -319,3 +319,38 @@ exports.addComment = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Delete comment from post
+// @route   DELETE /api/posts/:postId/comment/:commentId
+// @access  Private
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const { postId, commentId } = req.params;
+
+    if (!validators.validateObjectId(postId)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.POST_NOT_FOUND);
+    }
+
+    // 🔥 THIS IS THE IMPORTANT FIX
+    post.comments = post.comments.filter(
+      c => c._id.toString() !== commentId
+    );
+
+    await post.save();
+
+    const updatedPost = await Post.findById(postId)
+      .populate('clubId', 'name logo color')
+      .populate('authorId', 'username email name');
+
+    return ApiResponse.success(res, updatedPost, 'Comment deleted successfully');
+
+  } catch (error) {
+    next(error);
+  }
+};
