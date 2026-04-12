@@ -193,5 +193,4 @@ This simulates 100 concurrent users hitting the API for 10 seconds to evaluate s
 
 ## Author
 
-**Bhoomika Mannur**
-Computer Science Engineering Undergraduate
+**23BCS030 Bhoomika Mannur**
