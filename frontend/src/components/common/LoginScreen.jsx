@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import SignupScreen from './SignupScreen';
+import { GoogleLogin } from '@react-oauth/google';
+import ApiService from '../../services/api';
 
 const LoginScreen = () => {
   const { login } = useAuth();
@@ -98,17 +100,49 @@ const LoginScreen = () => {
           </button>
         </div>
 
-        {/* Sign Up for Students */}
         {userType === 'student' && (
           <div className="mt-6 text-center">
             <p className="text-gray-600 mb-3">Don't have an account?</p>
             <button
               onClick={() => setShowSignup(true)}
-              className="w-full py-3 rounded-xl font-semibold text-white transition"
+              className="w-full py-3 rounded-xl font-semibold text-white transition mb-3"
               style={{ background: 'linear-gradient(135deg, #86c6fd 0%, #ab83c3 100%)' }}
             >
               Create Account
             </button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-gray-400 text-sm">or</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* Google Login */}
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  setLoading(true);
+                  setError('');
+                  try {
+                    const response = await ApiService.googleAuth(credentialResponse.credential);
+                    const { token, ...userData } = response.data.data;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    window.location.reload();
+                  } catch (err) {
+                    setError(err.response?.data?.message || 'Google login failed');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                onError={() => setError('Google login failed')}
+                text="continue_with"
+                shape="rectangular"
+                theme="outline"
+                width="300"
+              />
+            </div>
           </div>
         )}
 

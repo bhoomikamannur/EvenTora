@@ -60,6 +60,7 @@ const ApiService = {
   },
   getMe: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
+  googleAuth: (credential) => api.post('/auth/google', { credential }),
 
   // ... rest of the API methods remain the same
   // CLUBS

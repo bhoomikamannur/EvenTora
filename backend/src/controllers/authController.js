@@ -368,3 +368,83 @@ exports.updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET
+);
+
+// @desc    Google OAuth login/register
+// @route   POST /api/auth/google
+// @access  Public
+exports.googleAuth = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: 'Google credential is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name } = payload;
+
+    // Check IIIT email domain
+    if (!email.endsWith('@iiitdwd.ac.in')) {
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        success: false,
+        message: 'Only IIIT Dharwad emails (@iiitdwd.ac.in) are allowed',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Auto-extract username from email
+    const username = email.split('@')[0].toLowerCase();
+
+    // Check if user already exists
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      // New user — auto create account
+      user = await User.create({
+        email: email.toLowerCase(),
+        name: name,
+        username: username,
+        password: Math.random().toString(36).slice(-16), // random password, never used
+        userType: 'student',
+        googleId: payload.sub
+      });
+    }
+
+    // Return user data with token
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Google login successful',
+      data: {
+        _id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        userType: user.userType,
+        adminClubId: user.adminClubId,
+        joinedClubs: user.joinedClubs,
+        likedPosts: user.likedPosts,
+        rsvpEvents: user.rsvpEvents,
+        token: generateToken(user._id)
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
