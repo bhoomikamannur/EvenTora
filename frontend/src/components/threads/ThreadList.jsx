@@ -28,14 +28,13 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
     loadThreads();
   }, [clubId, showReportedOnly]);
 
-  // 🔌 Socket — listen for new threads and replies in real time
+  // 🔌 Socket — listen for real-time updates
   useEffect(() => {
     if (!socket) return;
 
     socket.on('thread-added', (newThread) => {
       console.log('🆕 New thread received via socket:', newThread);
       setThreads(prev => {
-        // Avoid duplicates (in case the creator already added it locally)
         const exists = prev.some(t => t._id === newThread._id);
         if (exists) return prev;
         return [newThread, ...prev];
@@ -49,9 +48,34 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
       ));
     });
 
+    // 🔌 Real-time thread like updates from others
+    socket.on('thread-like-updated', ({ threadId, likes }) => {
+      console.log('💓 Thread like update received:', threadId, likes);
+      setThreads(prev => prev.map(t =>
+        normalizeId(t._id) === threadId ? { ...t, likes } : t
+      ));
+    });
+
+    // 🔌 Real-time reply like updates from others
+    socket.on('reply-like-updated', ({ threadId, replyId, likes }) => {
+      console.log('💓 Reply like update received:', replyId, likes);
+      setThreads(prev => prev.map(t =>
+        normalizeId(t._id) === threadId
+          ? {
+              ...t,
+              replies: t.replies.map(r =>
+                normalizeId(r._id) === replyId ? { ...r, likes } : r
+              )
+            }
+          : t
+      ));
+    });
+
     return () => {
       socket.off('thread-added');
       socket.off('reply-added');
+      socket.off('thread-like-updated');
+      socket.off('reply-like-updated');
     };
   }, [socket]);
 
@@ -119,14 +143,12 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
         isLiked: false
       };
 
-      // Add locally for the creator immediately
       setThreads(prev => {
         const exists = prev.some(t => t._id === newThread._id);
         if (exists) return prev;
         return [newThread, ...prev];
       });
 
-      // 🔌 Broadcast to others in this community
       if (socket) {
         socket.emit('new-thread', clubId, newThread);
       }
@@ -160,6 +182,14 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
       } else {
         setLikedThreads(prev => prev.filter(id => id !== normId));
       }
+
+      // 🔌 Broadcast like update to others
+      if (socket) {
+        socket.emit('thread-liked', clubId, {
+          threadId: normId,
+          likes: likesCount
+        });
+      }
     } catch (error) {
       console.error('❌ Failed to like thread:', error);
       loadThreads();
@@ -172,12 +202,10 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
       const response = await ApiService.addReply(threadId, { content });
       const threadData = response.data.data || response.data;
 
-      // Update locally for the reply creator
       setThreads(prevThreads => prevThreads.map(t =>
         t._id === threadId ? { ...threadData } : t
       ));
 
-      // 🔌 Broadcast reply to others
       if (socket) {
         socket.emit('new-reply', clubId, { threadId, updatedThread: threadData });
       }
@@ -216,6 +244,15 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
         setLikedReplies(prev => [...prev, normReplyId]);
       } else {
         setLikedReplies(prev => prev.filter(id => id !== normReplyId));
+      }
+
+      // 🔌 Broadcast reply like to others
+      if (socket) {
+        socket.emit('reply-liked', clubId, {
+          threadId: normThreadId,
+          replyId: normReplyId,
+          likes: likesCount
+        });
       }
     } catch (error) {
       console.error('❌ Failed to like reply:', error);

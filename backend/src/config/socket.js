@@ -61,6 +61,16 @@ const initSocket = (server) => {
     socket.on('disconnect', () => {
       console.log('❌ Socket disconnected:', socket.id);
     });
+
+    // Like update on a thread
+    socket.on('thread-liked', (communityId, data) => {
+    socket.to(communityId).emit('thread-like-updated', data);
+    });
+
+    // Like update on a reply
+    socket.on('reply-liked', (communityId, data) => {
+    socket.to(communityId).emit('reply-like-updated', data);
+    });
   });
 
   return io;
