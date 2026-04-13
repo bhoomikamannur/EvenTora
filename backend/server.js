@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
+const { initSocket } = require('./src/config/socket');
 
 // Load env vars
 dotenv.config();
@@ -13,6 +15,12 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// Create HTTP server (needed for Socket.io)
+const server = http.createServer(app);
+
+// Initialize Socket.io
+initSocket(server);
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads', 'posts');
@@ -75,7 +83,8 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+// Use server.listen instead of app.listen (important for Socket.io!)
+server.listen(PORT, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
 

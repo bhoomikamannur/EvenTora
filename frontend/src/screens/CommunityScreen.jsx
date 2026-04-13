@@ -16,6 +16,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import FloatingActionButton from '../components/common/FloatingActionButton';
 import ApiService from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import socket from '../config/socket';
 
 const CommunityScreen = ({
   clubId,
@@ -60,7 +61,28 @@ const CommunityScreen = ({
   const [clubMedia, setClubMedia] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // 🔌 Socket state
+  const [onlineCount, setOnlineCount] = useState(0);
+
   const { user } = useAuth();
+
+  // 🔌 Socket — join/leave community room when threads tab is active
+  useEffect(() => {
+    if (activeTab === 'threads' && isJoined) {
+      socket.connect();
+      socket.emit('join-community', clubId);
+
+      socket.on('online-count', (count) => {
+        setOnlineCount(count);
+      });
+
+      return () => {
+        socket.emit('leave-community', clubId);
+        socket.off('online-count');
+        socket.disconnect();
+      };
+    }
+  }, [activeTab, clubId]);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -68,13 +90,11 @@ const CommunityScreen = ({
 
   useEffect(() => {
     if (scrollToResource) {
-      // Delay slightly to ensure DOM is rendered
       setTimeout(() => {
         const elementId = `${scrollToResource.type}-${scrollToResource.id}`;
         const element = document.getElementById(elementId);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          // Highlight the element briefly
           element.style.backgroundColor = '#fff3cd';
           setTimeout(() => {
             element.style.backgroundColor = '';
@@ -91,7 +111,6 @@ const CommunityScreen = ({
     return cIdStr === clubIdStr;
   });
 
-  // Debug logging
   useEffect(() => {
     if (!club) {
       console.log('❌ Club not found. Details:', {
@@ -102,15 +121,13 @@ const CommunityScreen = ({
       });
     }
   }, [clubId, clubs, club]);
-  // Check if clubId is in joinedClubs array - handle both string IDs and objects
-  // Admin users managing this club are automatically considered "joined"
+
   const isJoined = (user?.userType === 'admin' && user?.adminClubId === clubId) || 
     (joinedClubs && joinedClubs.some(id => {
       const matches = (typeof id === 'string') ? id === clubId : id._id === clubId;
       return matches;
     }));
   
-  // Debug log
   useEffect(() => {
     console.log(`🔍 CommunityScreen isJoined check:`, {
       clubId,
@@ -145,9 +162,7 @@ const CommunityScreen = ({
     try {
       setLoading(true);
       const response = await ApiService.getMembers(clubId);
-      // Extract array from nested response structure
       const membersData = response.data?.data || response.data || [];
-      console.log('📋 Loaded members:', membersData);
       setMembers(Array.isArray(membersData) ? membersData : []);
     } catch (error) {
       console.error('Failed to load members:', error);
@@ -161,9 +176,7 @@ const CommunityScreen = ({
     try {
       setLoading(true);
       const response = await ApiService.getMedia(clubId);
-      // Extract array from nested response structure
       const mediaData = response.data?.data || response.data || [];
-      console.log('🎬 Loaded media:', mediaData);
       setClubMedia(Array.isArray(mediaData) ? mediaData : []);
     } catch (error) {
       console.error('Failed to load media:', error);
@@ -173,13 +186,9 @@ const CommunityScreen = ({
     }
   };
 
-
-
   const handleAddPost = async (data) => {
     const result = await onPostCreated(data);
-    if (result.success) {
-      setShowAddPost(false);
-    }
+    if (result.success) setShowAddPost(false);
     return result;
   };
 
@@ -205,9 +214,7 @@ const CommunityScreen = ({
 
   const handleAddEvent = async (data) => {
     const result = await onEventCreated(data);
-    if (result.success) {
-      setShowAddEvent(false);
-    }
+    if (result.success) setShowAddEvent(false);
     return result;
   };
 
@@ -235,26 +242,19 @@ const CommunityScreen = ({
     try {
       const response = await ApiService.addMember(clubId, data);
       const memberData = response.data?.data || response.data;
-      console.log('✅ Member added:', memberData);
       setMembers([...members, memberData]);
       setShowAddMember(false);
       return { success: true };
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Failed to add member';
-      console.error('❌ Add member error:', errorMsg, error.response?.data);
-      return { 
-        success: false, 
-        error: errorMsg
-      };
+      return { success: false, error: errorMsg };
     }
   };
 
   const handleUpdateMemberPosition = async (memberId, position) => {
     try {
       await ApiService.updateMember(clubId, memberId, { position });
-      setMembers(members.map(m => 
-        m._id === memberId ? { ...m, position } : m
-      ));
+      setMembers(members.map(m => m._id === memberId ? { ...m, position } : m));
     } catch (error) {
       alert('Failed to update member position');
     }
@@ -273,20 +273,13 @@ const CommunityScreen = ({
 
   const handleAddMedia = async (clubId, data) => {
     try {
-      console.log('📤 Adding media with data:', data);
       const response = await ApiService.createMedia(clubId, data);
-      console.log('📥 Create media response:', response);
       const mediaData = response.data?.data || response.data;
-      console.log('✅ Media data extracted:', mediaData);
       setClubMedia([mediaData, ...clubMedia]);
       setShowAddMedia(false);
       return { success: true };
     } catch (error) {
-      console.error('❌ Failed to add media:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Failed to add media' 
-      };
+      return { success: false, error: error.response?.data?.message || 'Failed to add media' };
     }
   };
 
@@ -298,17 +291,12 @@ const CommunityScreen = ({
   const handleUpdateMedia = async (clubId, mediaId, data) => {
     try {
       const response = await ApiService.updateMedia(clubId, mediaId, data);
-      setClubMedia(clubMedia.map(m => 
-        m._id === mediaId ? response.data : m
-      ));
+      setClubMedia(clubMedia.map(m => m._id === mediaId ? response.data : m));
       setShowEditMedia(false);
       setEditingMedia(null);
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Failed to update media' 
-      };
+      return { success: false, error: error.response?.data?.message || 'Failed to update media' };
     }
   };
 
@@ -371,10 +359,7 @@ const CommunityScreen = ({
           </div>
         ) : (
           <button 
-            onClick={() => {
-              console.log('👆 Join button clicked for club:', clubId);
-              onJoin(clubId);
-            }}
+            onClick={() => onJoin(clubId)}
             className={`px-8 py-3 rounded-xl font-semibold transition hover:opacity-90 ${
               isJoined ? 'bg-gray-200 text-gray-700 cursor-default' : 'text-white hover:shadow-lg'
             }`}
@@ -393,7 +378,6 @@ const CommunityScreen = ({
             key={tab} 
             onClick={() => {
               if (!isJoined && lockedTabs.includes(tab)) {
-                console.log('🔒 Tab locked:', tab, 'isJoined:', isJoined);
                 alert('Join the community first to access ' + tab);
               } else {
                 setActiveTab(tab);
@@ -542,15 +526,24 @@ const CommunityScreen = ({
               <div className="text-center py-12 bg-white rounded-xl">
                 <p className="text-gray-500">Join the community to view threads</p>
               </div>
-            ) : loading ? (
-              <LoadingSpinner message="Loading threads..." />
             ) : (
-              <ThreadList 
-                clubId={clubId}
-                currentUserId={user?._id}
-                clubColor={club.color}
-                isAdmin={isAdmin}
-              />
+              <div>
+                {/* 🟢 Online Count Badge */}
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse inline-block"></span>
+                  <span className="text-sm font-medium text-gray-600">
+                    {onlineCount} {onlineCount === 1 ? 'person' : 'people'} online
+                  </span>
+                </div>
+
+                <ThreadList 
+                  clubId={clubId}
+                  currentUserId={user?._id}
+                  clubColor={club.color}
+                  isAdmin={isAdmin}
+                  socket={socket}
+                />
+              </div>
             )}
           </div>
         )}
@@ -560,98 +553,51 @@ const CommunityScreen = ({
       {isAdmin && (
         <div>
           {activeTab === 'posts' && (
-            <FloatingActionButton 
-              onClick={() => setShowAddPost(true)}
-              color={club.color}
-              tooltip="Add Post"
-            />
+            <FloatingActionButton onClick={() => setShowAddPost(true)} color={club.color} tooltip="Add Post" />
           )}
           {activeTab === 'announcements' && (
-            <FloatingActionButton 
-              onClick={() => setShowAddEvent(true)}
-              color={club.color}
-              tooltip="Add Event"
-            />
+            <FloatingActionButton onClick={() => setShowAddEvent(true)} color={club.color} tooltip="Add Event" />
           )}
           {activeTab === 'members' && (
-            <FloatingActionButton 
-              onClick={() => setShowAddMember(true)}
-              color={club.color}
-              tooltip="Add Member"
-            />
+            <FloatingActionButton onClick={() => setShowAddMember(true)} color={club.color} tooltip="Add Member" />
           )}
           {activeTab === 'media' && (
-            <FloatingActionButton 
-              onClick={() => setShowAddMedia(true)}
-              color={club.color}
-              tooltip="Add Media"
-            />
+            <FloatingActionButton onClick={() => setShowAddMedia(true)} color={club.color} tooltip="Add Media" />
           )}
         </div>
       )}
 
       {/* Modals */}
       {showAddPost && (
-        <AddPostModal 
-          onClose={() => setShowAddPost(false)} 
-          onAdd={handleAddPost} 
-          clubId={clubId} 
-        />
+        <AddPostModal onClose={() => setShowAddPost(false)} onAdd={handleAddPost} clubId={clubId} />
       )}
-      
       {showEditPost && editingPost && (
         <EditPostModal
           post={editingPost}
-          onClose={() => {
-            setShowEditPost(false);
-            setEditingPost(null);
-          }}
+          onClose={() => { setShowEditPost(false); setEditingPost(null); }}
           onSave={handleUpdatePost}
         />
       )}
-
       {showAddEvent && (
-        <AddEventModal 
-          onClose={() => setShowAddEvent(false)} 
-          onAdd={handleAddEvent} 
-          clubId={clubId} 
-        />
+        <AddEventModal onClose={() => setShowAddEvent(false)} onAdd={handleAddEvent} clubId={clubId} />
       )}
-
       {showEditEvent && editingEvent && (
         <EditEventModal
           event={editingEvent}
-          onClose={() => {
-            setShowEditEvent(false);
-            setEditingEvent(null);
-          }}
+          onClose={() => { setShowEditEvent(false); setEditingEvent(null); }}
           onSave={handleUpdateEvent}
         />
       )}
-
       {showAddMember && (
-        <AddMemberModal
-          clubId={clubId}
-          onClose={() => setShowAddMember(false)}
-          onAdd={handleAddMember}
-        />
+        <AddMemberModal clubId={clubId} onClose={() => setShowAddMember(false)} onAdd={handleAddMember} />
       )}
-
       {showAddMedia && (
-        <AddMediaModal
-          clubId={clubId}
-          onClose={() => setShowAddMedia(false)}
-          onAdd={handleAddMedia}
-        />
+        <AddMediaModal clubId={clubId} onClose={() => setShowAddMedia(false)} onAdd={handleAddMedia} />
       )}
-
       {showEditMedia && editingMedia && (
         <EditMediaModal
           media={editingMedia}
-          onClose={() => {
-            setShowEditMedia(false);
-            setEditingMedia(null);
-          }}
+          onClose={() => { setShowEditMedia(false); setEditingMedia(null); }}
           onSave={handleUpdateMedia}
         />
       )}
