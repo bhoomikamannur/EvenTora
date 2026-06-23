@@ -21,12 +21,12 @@ export const truncate = (str, length) => {
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
   
-  // If already a full URL, return as-is
+  // Cloudinary URLs are already full URLs
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
   
-  // Construct full URL for local uploads
+  // Fallback for any local paths (shouldn't happen with Cloudinary)
   const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:5000';
   return `${serverUrl}/${imagePath}`;
 };

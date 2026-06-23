@@ -108,8 +108,13 @@ exports.createPost = async (req, res, next) => {
     const images = [];
     if (req.files && req.files.length > 0) {
       req.files.forEach(file => {
-        console.log(`📸 File uploaded: ${file.filename} (${file.size} bytes)`);
-        images.push(file.path);
+        console.log('📸 Cloudinary file object:', JSON.stringify(file, null, 2));
+        // Cloudinary returns different properties - try multiple variations
+        const imageUrl = file.secure_url || file.url || file.path;
+        console.log(`📸 Extracted URL: ${imageUrl}`);
+        if (imageUrl) {
+          images.push(imageUrl);
+        }
       });
     }
 

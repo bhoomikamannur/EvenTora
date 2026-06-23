@@ -3,3 +3,5 @@ backend/.env
 frontend/.env
 VALIDATION_GUIDE.md
 uploads/
+frontend/build/
+backend/logs
