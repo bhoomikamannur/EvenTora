@@ -14,6 +14,7 @@ import { usePosts } from './hooks/usePosts';
 import { useEvents } from './hooks/useEvents';
 import { useClubs } from './hooks/useClubs';
 import ApiService from './services/api';
+import socket from './config/socket';
 
 const AppContent = () => {
   const { user, isAuthenticated, isAdmin, loading: authLoading } = useAuth();
@@ -31,7 +32,7 @@ const AppContent = () => {
 
   // Use custom hooks
   const { posts, loading: postsLoading, createPost, updatePost, deletePost, likePost, refetch: refetchPosts } = usePosts();
-  const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent, rsvpEvent, refetch: refetchEvents } = useEvents();
+  const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent, rsvpEvent, cancelRsvpEvent, applyRsvpBroadcast, refetch: refetchEvents } = useEvents();
   const { clubs, loading: clubsLoading, joinClub, leaveClub } = useClubs();
 
   // Load user data on mount
@@ -40,6 +41,24 @@ const AppContent = () => {
       loadUserData();
     }
   }, [user]);
+
+  // 🔌 Keep a single app-wide socket connection alive so RSVP counts
+  // update live for everyone looking at an event, regardless of which
+  // screen/tab they're on. (Separate from the per-community connect/
+  // disconnect used for the Threads "online" presence feature.)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    socket.connect();
+    socket.on('rsvp-updated', ({ eventId, rsvps }) => {
+      applyRsvpBroadcast(eventId, rsvps);
+    });
+
+    return () => {
+      socket.off('rsvp-updated');
+      socket.disconnect();
+    };
+  }, [isAuthenticated]);
 
   const loadUserData = async () => {
     try {
@@ -161,6 +180,21 @@ const AppContent = () => {
       }
     } catch (error) {
       console.error('❌ Exception in handleRSVPEvent:', error);
+      alert('Error: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleCancelRSVP = async (eventId) => {
+    try {
+      if (rsvpEvents.includes(eventId)) {
+        const result = await cancelRsvpEvent(eventId);
+        if (result.success) {
+          setRsvpEvents(rsvpEvents.filter(id => id !== eventId));
+        } else {
+          alert(result.error || 'Failed to cancel RSVP');
+        }
+      }
+    } catch (error) {
       alert('Error: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -344,6 +378,7 @@ const AppContent = () => {
             onLike={handleLikePost}
             likedPosts={likedPosts}
             onRSVP={handleRSVPEvent}
+            onCancelRSVP={handleCancelRSVP}
             rsvpEvents={rsvpEvents}
             isAdmin={isAdmin && user?.adminClubId === selectedClub}
             onPostCreated={handlePostCreated}
@@ -387,6 +422,7 @@ const AppContent = () => {
                 events={events}
                 isAdmin={isAdmin}
                 adminClubId={user?.adminClubId}
+                clubs={clubs}
                 onAddEvent={handleEventCreated}
                 onEventClick={handleEventClick}
               />
@@ -396,6 +432,7 @@ const AppContent = () => {
               <ProfileScreen
                 joinedClubs={joinedClubs}
                 clubs={clubs}
+                events={events}
               />
             )}
           </>

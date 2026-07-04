@@ -29,6 +29,7 @@ const CommunityScreen = ({
   onLike,
   likedPosts,
   onRSVP,
+  onCancelRSVP,
   rsvpEvents,
   isAdmin,
   onPostCreated,
@@ -67,9 +68,10 @@ const CommunityScreen = ({
   const { user } = useAuth();
 
   // 🔌 Socket — join/leave community room when threads tab is active
+  // (the socket connection itself is owned/kept alive at the App level
+  // so RSVP updates keep flowing even when this tab isn't active)
   useEffect(() => {
     if (activeTab === 'threads' && isJoined) {
-      socket.connect();
       socket.emit('join-community', clubId);
 
       socket.on('online-count', (count) => {
@@ -79,7 +81,6 @@ const CommunityScreen = ({
       return () => {
         socket.emit('leave-community', clubId);
         socket.off('online-count');
-        socket.disconnect();
       };
     }
   }, [activeTab, clubId]);
@@ -438,6 +439,7 @@ const CommunityScreen = ({
                   <EventCard
                     event={event}
                     onRSVP={onRSVP}
+                    onCancelRSVP={onCancelRSVP}
                     hasRSVPd={rsvpEvents.includes(event._id)}
                     onDelete={handleDeleteEvent}
                     isAdmin={isAdmin}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
 
-const EventCard = ({ event, onRSVP, hasRSVPd, onDelete, isAdmin, onEdit }) => {
+const EventCard = ({ event, onRSVP, onCancelRSVP, hasRSVPd, onDelete, isAdmin, onEdit }) => {
   const club = event.clubId;
 
   return (
@@ -51,24 +51,30 @@ const EventCard = ({ event, onRSVP, hasRSVPd, onDelete, isAdmin, onEdit }) => {
         <div className="flex items-center gap-2 text-ink-muted">
           <span className="font-semibold text-ink">⏰ Time:</span> {event.time}
         </div>
-        {!event.isAcademic && (
-          <div className="flex items-center gap-2 text-ink-muted">
-            <span className="font-semibold text-ink">👥 RSVPs:</span> {event.rsvps}
-          </div>
-        )}
       </div>
       
       {!event.isAcademic && (
-        <button 
-          onClick={() => onRSVP(event._id)} 
-          disabled={hasRSVPd}
-          className={`w-full py-3 rounded-xl font-semibold transition ${
-            hasRSVPd ? 'bg-cream-dim text-ink-soft' : 'text-white'
-          }`}
-          style={!hasRSVPd ? { background: '#7A9B76' } : {}}
-        >
-          {hasRSVPd ? '✓ RSVP Confirmed' : 'RSVP Now'}
-        </button>
+        isAdmin ? (
+          // Admins can view the live RSVP count for their own event but cannot RSVP to it
+          <div className="w-full py-3 rounded-xl font-semibold text-center bg-cream-dim text-ink-soft">
+            👥 {event.rsvps ?? 0} {event.rsvps === 1 ? 'person has' : 'people have'} RSVP&apos;d
+          </div>
+        ) : hasRSVPd ? (
+          <button
+            onClick={() => onCancelRSVP && onCancelRSVP(event._id)}
+            className="w-full py-3 rounded-xl font-semibold transition bg-cream-dim text-ink-soft hover:bg-red-50 hover:text-red-600"
+          >
+            ✓ RSVP Confirmed — Cancel
+          </button>
+        ) : (
+          <button
+            onClick={() => onRSVP(event._id)}
+            className="w-full py-3 rounded-xl font-semibold transition text-white"
+            style={{ background: '#7A9B76' }}
+          >
+            RSVP Now
+          </button>
+        )
       )}
     </div>
   );

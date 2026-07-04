@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Trash2, Flag, MoreVertical } from 'lucide-react';
 import ReportModal from './ReportModal';
+import ViewReportsModal from './ViewReportsModal';
 
 const ThreadCard = ({ 
   thread, 
@@ -9,6 +10,7 @@ const ThreadCard = ({
   onReply, 
   onDelete,
   onReport,
+  onDismissReport,
   isLiked,
   currentUserId,
   isAdmin,
@@ -19,6 +21,7 @@ const ThreadCard = ({
   const [submitting, setSubmitting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showViewReportsModal, setShowViewReportsModal] = useState(false);
 
   const item = reply || thread;
   
@@ -140,12 +143,13 @@ const ThreadCard = ({
                   {isAdmin && item.isReported && (
                     <button
                       onClick={() => {
-                        // Handle dismiss report
+                        setShowViewReportsModal(true);
                         setShowMenu(false);
                       }}
                       className="w-full px-4 py-2 text-left text-plum-600 hover:bg-cream-dim flex items-center gap-2"
                     >
-                      View Reports
+                      <Flag className="w-4 h-4" />
+                      View Reports ({item.reports?.length || 0})
                     </button>
                   )}
                 </div>
@@ -215,6 +219,19 @@ const ThreadCard = ({
           type={reply ? 'reply' : 'thread'}
           onClose={() => setShowReportModal(false)}
           onSubmit={handleReport}
+        />
+      )}
+
+      {/* View Reports Modal (Admin) */}
+      {showViewReportsModal && (
+        <ViewReportsModal
+          type={reply ? 'reply' : 'thread'}
+          reports={item.reports || []}
+          onClose={() => setShowViewReportsModal(false)}
+          onDismiss={async () => {
+            await onDismissReport();
+            setShowViewReportsModal(false);
+          }}
         />
       )}
     </div>

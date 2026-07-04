@@ -4,6 +4,7 @@ const Club = require('../models/Club');
 const { ERROR_MESSAGES, HTTP_STATUS } = require('../utils/constants');
 const validators = require('../utils/validators');
 const ApiResponse = require('../utils/apiResponse');
+const { getIO } = require('../config/socket');
 
 // @desc    Get all events
 // @route   GET /api/events
@@ -236,6 +237,15 @@ exports.rsvpEvent = async (req, res, next) => {
     if (!event) {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.EVENT_NOT_FOUND);
     }
+
+    // Club admins cannot RSVP to events posted by their own club
+    if (
+      user.userType === 'admin' &&
+      user.adminClubId &&
+      user.adminClubId.toString() === event.clubId.toString()
+    ) {
+      return ApiResponse.forbidden(res, 'Admins cannot RSVP to their own club\'s events');
+    }
     
     const userIdString = req.user._id.toString();
     const hasRSVPd = event.rsvpList.some(rsvpId => rsvpId.toString() === userIdString);
@@ -250,6 +260,13 @@ exports.rsvpEvent = async (req, res, next) => {
     
     await event.save();
     await user.save();
+    
+    // 🔌 Broadcast the new count to everyone viewing this event live
+    try {
+      getIO().emit('rsvp-updated', { eventId: event._id.toString(), rsvps: event.rsvps });
+    } catch (socketErr) {
+      console.error('Socket emit failed (rsvp):', socketErr.message);
+    }
     
     return ApiResponse.success(res, { rsvps: event.rsvps }, 'RSVP successful');
   } catch (error) {
@@ -288,6 +305,13 @@ exports.cancelRSVP = async (req, res, next) => {
     
     await event.save();
     await user.save();
+    
+    // 🔌 Broadcast the new count to everyone viewing this event live
+    try {
+      getIO().emit('rsvp-updated', { eventId: event._id.toString(), rsvps: event.rsvps });
+    } catch (socketErr) {
+      console.error('Socket emit failed (rsvp cancel):', socketErr.message);
+    }
     
     return ApiResponse.success(res, { rsvps: event.rsvps }, 'RSVP cancelled successfully');
   } catch (error) {

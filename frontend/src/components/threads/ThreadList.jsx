@@ -281,6 +281,34 @@ const ThreadList = ({ clubId, currentUserId, currentUsername, clubColor, isAdmin
     }
   };
 
+  const handleDismissThreadReport = async (threadId) => {
+    try {
+      await ApiService.dismissReport(threadId);
+      setThreads(prev => prev.map(t =>
+        t._id === threadId ? { ...t, reports: [], isReported: false } : t
+      ));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to dismiss report');
+    }
+  };
+
+  const handleDismissReplyReport = async (threadId, replyId) => {
+    try {
+      await ApiService.dismissReplyReport(threadId, replyId);
+      setThreads(prev => prev.map(t => {
+        if (t._id !== threadId) return t;
+        return {
+          ...t,
+          replies: t.replies.map(r =>
+            r._id === replyId ? { ...r, reports: [], isReported: false } : r
+          )
+        };
+      }));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to dismiss report');
+    }
+  };
+
   const handleDeleteThread = async (threadId) => {
     if (!window.confirm('Delete this thread?')) return;
     try {
@@ -370,6 +398,7 @@ const ThreadList = ({ clubId, currentUserId, currentUsername, clubColor, isAdmin
                   onReply={(content) => handleReply(thread._id, content)}
                   onDelete={() => handleDeleteThread(thread._id)}
                   onReport={(reason) => handleReportThread(thread._id, reason)}
+                  onDismissReport={() => handleDismissThreadReport(thread._id)}
                   isLiked={isLiked}
                   currentUserId={currentUserId}
                   isAdmin={isAdmin}
@@ -390,6 +419,7 @@ const ThreadList = ({ clubId, currentUserId, currentUsername, clubColor, isAdmin
                           onReply={() => {}}
                           onDelete={() => handleDeleteReply(thread._id, reply._id)}
                           onReport={(reason) => handleReportReply(thread._id, reply._id, reason)}
+                          onDismissReport={() => handleDismissReplyReport(thread._id, reply._id)}
                           isLiked={isReplyLiked}
                           currentUserId={currentUserId}
                           isAdmin={isAdmin}

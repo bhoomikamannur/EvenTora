@@ -71,23 +71,56 @@ export const useEvents = (clubId = null) => {
   const rsvpEvent = async (id) => {
     try {
       const response = await ApiService.rsvpEvent(id);
-      setEvents(events.map(e => {
+      // Backend wraps payload in { success, message, data }, so the
+      // updated rsvp count lives at response.data.data.rsvps, not
+      // response.data.rsvps.
+      const rsvpData = response.data?.data || response.data;
+      setEvents(prevEvents => prevEvents.map(e => {
         if (e._id === id) {
           return {
             ...e,
-            rsvps: response.data.rsvps,
+            rsvps: rsvpData.rsvps,
             hasRSVPd: true
           };
         }
         return e;
       }));
-      return { success: true };
+      return { success: true, data: rsvpData };
     } catch (err) {
       return { 
         success: false, 
         error: err.response?.data?.message || 'Failed to RSVP' 
       };
     }
+  };
+
+  const cancelRsvpEvent = async (id) => {
+    try {
+      const response = await ApiService.cancelRSVP(id);
+      const rsvpData = response.data?.data || response.data;
+      setEvents(prevEvents => prevEvents.map(e => {
+        if (e._id === id) {
+          return {
+            ...e,
+            rsvps: rsvpData.rsvps,
+            hasRSVPd: false
+          };
+        }
+        return e;
+      }));
+      return { success: true, data: rsvpData };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Failed to cancel RSVP'
+      };
+    }
+  };
+
+  const applyRsvpBroadcast = (eventId, rsvps) => {
+    setEvents(prevEvents => prevEvents.map(e =>
+      e._id === eventId ? { ...e, rsvps } : e
+    ));
   };
 
   return {
@@ -98,6 +131,8 @@ export const useEvents = (clubId = null) => {
     updateEvent,
     deleteEvent,
     rsvpEvent,
+    cancelRsvpEvent,
+    applyRsvpBroadcast,
     refetch: fetchEvents
   };
 };

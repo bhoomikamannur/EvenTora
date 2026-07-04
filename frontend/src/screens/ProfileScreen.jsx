@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Edit2, Check, X } from 'lucide-react';
+import { LogOut, Edit2, Check, X, Users, CalendarCheck, TrendingUp } from 'lucide-react';
 import ApiService from '../services/api';
 
-const ProfileScreen = ({ joinedClubs, clubs }) => {
+const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
   const { user, isAdmin, logout, loadUser } = useAuth();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -21,6 +21,18 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
   const [loading, setLoading] = useState(false);
 
   const joinedClubsData = clubs.filter(c => joinedClubs.includes(c._id));
+
+  // Analytics for the club this user administers (if any)
+  const adminClub = isAdmin ? clubs.find(c => c._id === user?.adminClubId) : null;
+  const adminClubEvents = adminClub
+    ? events
+        .filter(e => {
+          const clubId = typeof e.clubId === 'string' ? e.clubId : e.clubId?._id;
+          return clubId === adminClub._id;
+        })
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+    : [];
+  const totalRSVPs = adminClubEvents.reduce((sum, e) => sum + (e.rsvps || 0), 0);
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
@@ -301,10 +313,65 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
 
         {!isEditingProfile && !isChangingPassword && (
           <>
-            {isAdmin && (
-              <div className="mt-6 p-4 rounded-xl" style={{ background: '#6B4A6315' }}>
-                <h3 className="font-display font-semibold mb-2">🎯 Admin Dashboard</h3>
-                <p className="text-sm text-ink-muted">Manage your club community</p>
+            {isAdmin && adminClub && (
+              <div className="mt-6 p-4 rounded-xl text-left" style={{ background: '#6B4A6315' }}>
+                <h3 className="font-display font-semibold mb-1 flex items-center gap-2">
+                  🎯 Admin Dashboard
+                </h3>
+                <p className="text-sm text-ink-muted mb-4">
+                  Analytics for {adminClub.logo} {adminClub.name}
+                </p>
+
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="bg-cream-card rounded-xl p-3 text-center border border-cream-dim">
+                    <Users className="w-5 h-5 mx-auto mb-1 text-plum-600" />
+                    <p className="text-xl font-bold text-ink">{adminClub.communityMembers || 0}</p>
+                    <p className="text-xs text-ink-muted">Members Joined</p>
+                  </div>
+                  <div className="bg-cream-card rounded-xl p-3 text-center border border-cream-dim">
+                    <CalendarCheck className="w-5 h-5 mx-auto mb-1 text-plum-600" />
+                    <p className="text-xl font-bold text-ink">{adminClubEvents.length}</p>
+                    <p className="text-xs text-ink-muted">Events Posted</p>
+                  </div>
+                  <div className="bg-cream-card rounded-xl p-3 text-center border border-cream-dim">
+                    <TrendingUp className="w-5 h-5 mx-auto mb-1 text-plum-600" />
+                    <p className="text-xl font-bold text-ink">{totalRSVPs}</p>
+                    <p className="text-xs text-ink-muted">Total RSVPs</p>
+                  </div>
+                </div>
+
+                {adminClubEvents.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-ink-soft mb-2 uppercase tracking-wide">
+                      RSVPs by Event
+                    </p>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {adminClubEvents.map(event => (
+                        <div
+                          key={event._id}
+                          className="flex items-center justify-between bg-cream-card rounded-lg p-2.5 border border-cream-dim"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <p className="text-sm font-medium text-ink truncate">{event.title}</p>
+                            <p className="text-xs text-ink-muted">
+                              {new Date(event.date).toLocaleDateString()}
+                              {event.isAcademic && ' • Academic'}
+                            </p>
+                          </div>
+                          {!event.isAcademic ? (
+                            <span className="flex-shrink-0 text-sm font-semibold text-plum-600 bg-plum-50 px-2.5 py-1 rounded-full">
+                              {event.rsvps || 0} RSVP{event.rsvps === 1 ? '' : 's'}
+                            </span>
+                          ) : (
+                            <span className="flex-shrink-0 text-xs text-ink-muted px-2.5 py-1">
+                              No RSVPs
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import PostCard from '../components/posts/PostCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import AnnouncementEventCard from '../components/events/AnnouncementEventCard';
 
 const HomeScreen = ({ 
   posts, 
@@ -55,21 +56,12 @@ const HomeScreen = ({
               const clubId = typeof event.clubId === 'string' ? event.clubId : event.clubId?._id;
               const club = clubs.find(c => c._id === clubId);
               return (
-                <button 
+                <AnnouncementEventCard
                   key={event._id}
+                  event={event}
+                  club={club}
                   onClick={() => onClubClick(clubId, 'announcements')}
-                  className="w-full p-3 rounded-xl text-left hover:shadow-md transition" 
-                  style={{ background: `${club?.color}15` }}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{club?.logo}</span>
-                    <span className="font-semibold text-sm text-ink">{club?.name}</span>
-                  </div>
-                  <p className="text-sm font-medium text-ink-soft">{event.title}</p>
-                  <p className="text-xs text-ink-muted mt-1">
-                    {new Date(event.date).toLocaleDateString()} • {event.time}
-                  </p>
-                </button>
+                />
               );
             })}
         </div>

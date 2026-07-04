@@ -5,6 +5,7 @@ const {
   reportThread,
   deleteThread,
   dismissReport,
+  dismissReplyReport,
   addReply,
   likeReply,
   reportReply,
@@ -22,6 +23,7 @@ router.delete('/:id', protect, deleteThread);
 router.post('/:id/reply', protect, addReply);
 router.post('/:threadId/reply/:replyId/like', protect, likeReply);
 router.post('/:threadId/reply/:replyId/report', protect, reportReply);
+router.post('/:threadId/reply/:replyId/dismiss-report', protect, adminOnly, dismissReplyReport);
 router.delete('/:threadId/reply/:replyId', protect, deleteReply);
 
 module.exports = router;

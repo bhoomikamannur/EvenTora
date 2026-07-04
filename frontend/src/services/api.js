@@ -129,6 +129,7 @@ const ApiService = {
     addReply: (threadId, data) => api.post(`/threads/${threadId}/reply`, data),
     likeReply: (threadId, replyId) => api.post(`/threads/${threadId}/reply/${replyId}/like`),
     reportReply: (threadId, replyId, data) => api.post(`/threads/${threadId}/reply/${replyId}/report`, data),
+    dismissReplyReport: (threadId, replyId) => api.post(`/threads/${threadId}/reply/${replyId}/dismiss-report`),
     deleteReply: (threadId, replyId) => api.delete(`/threads/${threadId}/reply/${replyId}`),
 };
 

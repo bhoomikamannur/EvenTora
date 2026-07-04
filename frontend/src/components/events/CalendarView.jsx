@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, CalendarDays } from 'lucide-react';
 import AddEventModal from './AddEventModal';
+import AnnouncementEventCard from './AnnouncementEventCard';
 
-const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }) => {
+const CalendarView = ({ events, isAdmin, adminClubId, clubs = [], onAddEvent, onEventClick }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showAddEvent, setShowAddEvent] = useState(false);
 
@@ -28,6 +29,23 @@ const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }
     if (!day) return [];
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return events.filter(e => e.date === dateStr);
+  };
+
+  // Every event (from every club) that falls within the month currently
+  // shown on the calendar, sorted chronologically.
+  const monthEvents = events
+    .filter(e => {
+      const eventDate = new Date(e.date);
+      return (
+        eventDate.getFullYear() === currentDate.getFullYear() &&
+        eventDate.getMonth() === currentDate.getMonth()
+      );
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const getClubForEvent = (event) => {
+    const clubId = typeof event.clubId === 'string' ? event.clubId : event.clubId?._id;
+    return clubs.find(c => c._id === clubId);
   };
 
   const monthNames = [
@@ -123,6 +141,30 @@ const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }
           clubId={adminClubId}
         />
       )}
+
+      {/* Events happening this month, across all clubs */}
+      <div className="mt-6 pt-4 border-t border-cream-dim">
+        <h4 className="flex items-center gap-2 font-display font-semibold text-ink mb-3">
+          <CalendarDays className="w-4 h-4 text-plum-600" />
+          Events in {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+        </h4>
+        {monthEvents.length === 0 ? (
+          <p className="text-sm text-ink-muted py-4 text-center">
+            No events scheduled this month.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {monthEvents.map(event => (
+              <AnnouncementEventCard
+                key={event._id}
+                event={event}
+                club={getClubForEvent(event)}
+                onClick={() => onEventClick && onEventClick(event)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

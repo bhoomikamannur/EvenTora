@@ -550,3 +550,40 @@ exports.dismissReport = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Dismiss reply report (Admin only)
+// @route   POST /api/threads/:threadId/reply/:replyId/dismiss-report
+// @access  Private/Admin
+exports.dismissReplyReport = async (req, res, next) => {
+  try {
+    const { threadId, replyId } = req.params;
+
+    if (!validators.validateObjectId(threadId)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    if (!validators.validateObjectId(replyId)) {
+      return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    const thread = await Thread.findById(threadId);
+
+    if (!thread) {
+      return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.THREAD_NOT_FOUND);
+    }
+
+    const reply = thread.replies.id(replyId);
+
+    if (!reply) {
+      return ApiResponse.notFound(res, 'Reply not found');
+    }
+
+    reply.reports = [];
+    reply.isReported = false;
+    await thread.save();
+
+    return ApiResponse.success(res, {}, 'Report dismissed successfully');
+  } catch (error) {
+    next(error);
+  }
+};

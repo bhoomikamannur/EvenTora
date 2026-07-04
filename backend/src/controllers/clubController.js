@@ -105,7 +105,8 @@ exports.createClub = async (req, res, next) => {
       type,
       description: description ? validators.sanitizeInput(description) : '',
       color: color || '#ab83c3',
-      logo: logo || '🎯'
+      logo: logo || '🎯',
+      memberHistory: [{ count: 0, date: new Date() }]
     };
 
     const club = await Club.create(clubData);
@@ -237,6 +238,7 @@ exports.joinClub = async (req, res, next) => {
     
     // Increment club member count
     club.communityMembers = (club.communityMembers || 0) + 1;
+    club.memberHistory.push({ count: club.communityMembers, date: new Date() });
     await club.save();
 
     const updatedUser = await User.findById(user._id).populate('joinedClubs');
@@ -279,6 +281,7 @@ exports.leaveClub = async (req, res, next) => {
     
     // Decrement club member count
     club.communityMembers = Math.max(0, (club.communityMembers || 1) - 1);
+    club.memberHistory.push({ count: club.communityMembers, date: new Date() });
     await club.save();
     
     return ApiResponse.success(res, {}, 'Left club successfully');

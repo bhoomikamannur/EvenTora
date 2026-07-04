@@ -1,7 +1,7 @@
 import React from 'react';
 import CalendarView from '../components/events/CalendarView';
 
-const CalendarScreen = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }) => {
+const CalendarScreen = ({ events, isAdmin, adminClubId, clubs, onAddEvent, onEventClick }) => {
   return (
     <div>
       <h2 className="text-2xl font-display font-semibold text-ink mb-4">Event Calendar</h2>
@@ -9,6 +9,7 @@ const CalendarScreen = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick
         events={events} 
         isAdmin={isAdmin} 
         adminClubId={adminClubId}
+        clubs={clubs}
         onAddEvent={onAddEvent}
         onEventClick={onEventClick}
       />
