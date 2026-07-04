@@ -1,195 +1,172 @@
 # Eventora
 
-A scalable community platform for college clubs to publish events, announcements, and updates. Eventora enables students to discover campus activities while providing clubs with tools to manage and moderate content.
-
-## Architecture
-
-Eventora follows a MERN-based architecture with separate frontend and backend services.
-
-* **Frontend:** React application for user interaction
-* **Backend:** Node.js + Express REST API
-* **Database:** MongoDB
-* **Caching:** Redis (for frequently accessed event data)
-
-```
-Eventora
-│
-├── frontend/      # React client
-├── backend/       # Node.js API server
-└── README.md
-```
+A community platform built for **IIIT Dharwad** students to discover campus club activity — events, posts, discussions, and media — in one place. Clubs get a space to manage their community; students get a single feed to follow the clubs they care about.
 
 ## Features
 
-* User authentication and authorization
-* Role-based access (admin, club, student)
-* Event creation and management
-* Event discovery for students
-* RESTful API architecture
-* Redis caching for improved response latency
-* API rate limiting to prevent abuse
-* Structured logging for observability
-* Health check endpoint for monitoring
+- 🔐 **Auth** — email/password signup restricted to `@iiitdwd.ac.in`, plus Google Sign-In
+- 🏛️ **Clubs** — join/leave clubs, browse by type (technical / cultural)
+- 📸 **Posts** — feed with image uploads (via Cloudinary), likes, and comments
+- 📅 **Events** — event listings with RSVP, per-club and academic events
+- 💬 **Threads** — discussion forum with replies, likes, and a built-in report/moderation flow
+- 🎬 **Media** — link out to club YouTube, Instagram, and GitHub content
+- 👥 **Members** — club rosters with roles (Lead, Co-Lead, Team Lead, Member)
+- ⚡ **Real-time** — live online-user counts and instant thread/reply updates via Socket.io
+- 🛡️ **Admin controls** — club-scoped admin permissions for managing events, posts, media, members, and moderating reported threads
+- 🚀 **Performance** — Redis caching (graceful degradation if unavailable), API rate limiting, structured logging
 
 ## Tech Stack
 
 **Frontend**
-
-* React
-* JavaScript
-* Axios
+- React 18 (Create React App)
+- Tailwind CSS
+- Axios
+- Socket.io Client
+- Google OAuth (`@react-oauth/google`)
 
 **Backend**
+- Node.js + Express
+- MongoDB + Mongoose
+- Redis (caching)
+- Socket.io (real-time)
+- JWT + bcrypt (auth) + Google Auth Library
+- Cloudinary + Multer (image uploads)
 
-* Node.js
-* Express
-* MongoDB (Mongoose)
-* Redis
+**Tooling**
+- Docker
+- Autocannon (load testing)
 
-**Tools**
-
-* Git
-* Postman
-* Autocannon (load testing)
-
-## Setup Instructions
-
-### 1. Clone the Repository
+## Project Structure
 
 ```
+Eventora
+│
+├── frontend/               # React client
+│   └── src/
+│       ├── components/     # UI components (posts, events, threads, media, members, common)
+│       ├── screens/        # Top-level screens (Home, Communities, Calendar, Profile)
+│       ├── context/        # AuthContext
+│       ├── hooks/          # useClubs, useEvents, usePosts
+│       └── services/       # API client
+│
+├── backend/                # Node.js API server
+│   └── src/
+│       ├── controllers/    # Route logic
+│       ├── models/         # Mongoose schemas
+│       ├── routes/         # Express routers
+│       ├── middleware/     # Auth, rate limiting, logging, error handling
+│       └── config/         # DB, Redis, Socket.io setup
+│
+└── README.md
+```
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18+ recommended)
+- MongoDB (local or Atlas)
+- Redis (optional — app runs without it)
+- A Cloudinary account (for image uploads)
+- A Google Cloud OAuth Client ID (for Google Sign-In)
+
+### 1. Clone the repository
+
+```bash
 git clone https://github.com/<your-username>/eventora.git
 cd eventora
 ```
 
-### 2. Backend Setup
+### 2. Backend setup
 
-```
+```bash
 cd backend
 npm install
 ```
 
-Create a `.env` file:
+Create a `.env` file in `backend/`:
 
-```
+```env
 PORT=5000
-MONGO_URI=your_mongodb_connection
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=your_secret
+NODE_ENV=development
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+FRONTEND_URL=http://localhost:3000
+
+# Redis (optional)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
-Start the backend server:
+Start the backend:
 
-```
-npm start
+```bash
+npm run dev
 ```
 
-### 3. Frontend Setup
+### 3. Frontend setup
 
-```
+```bash
 cd frontend
 npm install
 npm start
 ```
 
-The frontend will run on `http://localhost:3000`.
-
-## API Highlights
-
-### Get All Events
-
-```
-GET /api/events
-```
-
-Returns a list of all available events. Frequently accessed results are cached using Redis.
-
-### Health Check
-
-```
-GET /health
-```
-
-Returns the service status and timestamp.
-
-## Performance Optimizations
-
-* **Redis Caching:** Reduces database load for frequently requested event data
-* **Rate Limiting:** Prevents API abuse and protects backend resources
-* **Structured Logging:** Enables easier debugging and observability
-
-## Load Testing
-
-The backend APIs were tested using Autocannon to simulate concurrent traffic.
-
-Example:
-
-```
-npx autocannon -c 100 -d 10 http://localhost:5000/api/events
-```
-
-## System Architecture
-
-```
-Client (Browser)
-      │
-      ▼
-React Frontend (UI)
-      │
-      ▼
-Node.js + Express API Layer
-      │
- ┌────┴───────────┐
- ▼                ▼
-MongoDB        Redis Cache
-(Database)   (Fast in‑memory cache)
-```
-
-**Flow:**
-
-1. User interacts with the React frontend.
-2. Frontend sends requests to the Express backend via REST APIs.
-3. Backend checks Redis cache for frequently requested data.
-4. If cache miss occurs, data is retrieved from MongoDB.
-5. Results are returned to the client and optionally cached for future requests.
-
-This architecture helps reduce database load and improve response time for high‑traffic endpoints.
+The frontend runs on `http://localhost:3000`, the backend on `http://localhost:5000`.
 
 ## API Overview
 
-| Method | Endpoint        | Description            |
-| ------ | --------------- | ---------------------- |
-| GET    | /api/events     | Fetch all events       |
-| GET    | /api/events/:id | Fetch a specific event |
-| POST   | /api/events     | Create a new event     |
-| PUT    | /api/events/:id | Update event details   |
-| DELETE | /api/events/:id | Delete an event        |
-| GET    | /health         | Service health check   |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register with IIIT Dharwad email |
+| POST | `/api/auth/login` | Login |
+| POST | `/api/auth/google` | Google OAuth login |
+| GET | `/api/auth/me` | Get current user |
+| GET | `/api/clubs` | List all clubs |
+| POST | `/api/clubs/:id/join` | Join a club |
+| GET | `/api/posts` | Get all posts |
+| POST | `/api/posts` | Create a post (image upload via Cloudinary) |
+| POST | `/api/posts/:id/like` | Like a post |
+| GET | `/api/events` | Get all events |
+| POST | `/api/events/:id/rsvp` | RSVP to an event |
+| GET | `/api/clubs/:clubId/threads` | Get club discussion threads |
+| POST | `/api/threads/:id/reply` | Reply to a thread |
+| POST | `/api/threads/:id/report` | Report a thread |
+| GET | `/api/health` | Service health check |
 
-## Performance & Scalability Features
+Full route list lives in `backend/src/routes/`.
 
-* **Redis Caching:** Frequently requested event data is cached to reduce database queries.
-* **Rate Limiting:** Protects the API from abuse by restricting excessive requests.
-* **Structured Logging:** Logs request metadata for debugging and observability.
-* **Load Testing:** Autocannon used to simulate concurrent traffic and analyze system behavior.
+## Real-Time Events (Socket.io)
+
+| Event | Direction | Description |
+|---|---|---|
+| `join-community` / `leave-community` | client → server | Join/leave a club's live room |
+| `online-count` | server → client | Live count of users viewing a club's threads |
+| `new-thread` / `thread-added` | both | Broadcast a newly created thread |
+| `new-reply` / `reply-added` | both | Broadcast a new reply |
+| `thread-liked` / `thread-like-updated` | both | Live like-count sync on threads |
+| `reply-liked` / `reply-like-updated` | both | Live like-count sync on replies |
 
 ## Load Testing
 
-Example command used to simulate concurrent requests:
-
-```
+```bash
 npx autocannon -c 100 -d 10 http://localhost:5000/api/events
 ```
 
-This simulates 100 concurrent users hitting the API for 10 seconds to evaluate system performance.
+## Roadmap
 
-## Future Improvements
-
-* Docker containerization for easier deployment
-* CI/CD pipeline with GitHub Actions
-* CDN integration for static assets
-* Advanced search and filtering
-* Event recommendation system
-* Horizontal scaling with load balancers
+- [ ] CI/CD pipeline (GitHub Actions)
+- [ ] CDN integration for static assets
+- [ ] Advanced search and filtering
+- [ ] Event recommendation system
+- [ ] Horizontal scaling with load balancers
 
 ## Author
 
