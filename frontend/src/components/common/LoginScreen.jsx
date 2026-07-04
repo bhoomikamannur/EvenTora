@@ -38,30 +38,30 @@ const LoginScreen = () => {
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4" 
-      style={{ background: 'linear-gradient(135deg, #ab83c3 0%, #86c6fd 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #6B4A63 0%, #E8A33D 100%)' }}
     >
-      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-        <h1 className="text-4xl font-bold text-center mb-2" style={{ color: '#ab83c3' }}>
+      <div className="bg-cream-card rounded-3xl shadow-2xl p-8 w-full max-w-md">
+        <h1 className="text-4xl font-display font-semibold text-center mb-2" style={{ color: '#6B4A63' }}>
           Eventora
         </h1>
-        <p className="text-center text-gray-600 mb-8">College Communities Hub</p>
+        <p className="text-center text-ink-muted mb-8">College Communities Hub</p>
         
         <div className="flex gap-4 mb-6">
           <button 
             onClick={() => setUserType('student')} 
             className={`flex-1 py-3 rounded-xl font-semibold transition ${
-              userType === 'student' ? 'text-white' : 'bg-gray-100 text-gray-600'
+              userType === 'student' ? 'text-white' : 'bg-cream-dim text-ink-muted'
             }`}
-            style={userType === 'student' ? { background: '#ab83c3' } : {}}
+            style={userType === 'student' ? { background: '#6B4A63' } : {}}
           >
             Student
           </button>
           <button 
             onClick={() => setUserType('admin')} 
             className={`flex-1 py-3 rounded-xl font-semibold transition ${
-              userType === 'admin' ? 'text-white' : 'bg-gray-100 text-gray-600'
+              userType === 'admin' ? 'text-white' : 'bg-cream-dim text-ink-muted'
             }`}
-            style={userType === 'admin' ? { background: '#ff337e' } : {}}
+            style={userType === 'admin' ? { background: '#D8A13A' } : {}}
           >
             Admin
           </button>
@@ -79,7 +79,7 @@ const LoginScreen = () => {
             placeholder={userType === 'student' ? 'College Email' : 'Club Email'}
             value={email} 
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400" 
+            className="w-full p-4 border-2 border-cream-dim rounded-xl focus:outline-none focus:border-plum-300" 
           />
           
           <input 
@@ -87,14 +87,14 @@ const LoginScreen = () => {
             placeholder="Password"
             value={password} 
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400" 
+            className="w-full p-4 border-2 border-cream-dim rounded-xl focus:outline-none focus:border-plum-300" 
           />
           
           <button 
             onClick={handleLogin}
             disabled={loading}
             className="w-full py-4 rounded-xl font-semibold text-white text-lg disabled:opacity-50 transition"
-            style={{ background: 'linear-gradient(135deg, #ab83c3 0%, #ff337e 100%)' }}
+            style={{ background: 'linear-gradient(135deg, #6B4A63 0%, #D8A13A 100%)' }}
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
@@ -102,20 +102,20 @@ const LoginScreen = () => {
 
         {userType === 'student' && (
           <div className="mt-6 text-center">
-            <p className="text-gray-600 mb-3">Don't have an account?</p>
+            <p className="text-ink-muted mb-3">Don't have an account?</p>
             <button
               onClick={() => setShowSignup(true)}
               className="w-full py-3 rounded-xl font-semibold text-white transition mb-3"
-              style={{ background: 'linear-gradient(135deg, #86c6fd 0%, #ab83c3 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #7A9B76 0%, #D8A13A 100%)' }}
             >
               Create Account
             </button>
 
             {/* Divider */}
             <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-gray-400 text-sm">or</span>
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-cream-dim" />
+              <span className="text-ink-faint text-sm">or</span>
+              <div className="flex-1 h-px bg-cream-dim" />
             </div>
 
             {/* Google Login */}

@@ -4,7 +4,7 @@ import ThreadCard from './ThreadCard';
 import ApiService from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 
-const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
+const ThreadList = ({ clubId, currentUserId, currentUsername, clubColor, isAdmin, socket }) => {
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -317,7 +317,7 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
           <p className="text-red-700 text-sm">{error}</p>
           <details className="text-red-600 text-xs mt-2 cursor-pointer">
             <summary>Debug Info</summary>
-            <pre className="text-left bg-white p-2 mt-2 rounded overflow-auto max-h-40">
+            <pre className="text-left bg-cream-card p-2 mt-2 rounded overflow-auto max-h-40">
               clubId: {clubId}{'\n'}
               currentUserId: {currentUserId}{'\n'}
               isAdmin: {isAdmin}
@@ -363,7 +363,7 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
             const normId = normalizeId(thread._id);
             const isLiked = likedThreads.includes(normId);
             return (
-              <div key={thread._id}>
+              <div key={thread._id} className="mb-6">
                 <ThreadCard
                   thread={thread}
                   onLike={() => handleLikeThread(thread._id)}
@@ -404,8 +404,8 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
           })}
         </div>
       ) : (
-        <div className="bg-white rounded-xl p-8 text-center">
-          <p className="text-gray-500">
+        <div className="bg-cream-card rounded-xl p-8 text-center">
+          <p className="text-ink-muted">
             {showReportedOnly ? 'No reported threads' : 'No discussions yet. Start one below!'}
           </p>
         </div>
@@ -413,17 +413,17 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
 
       {/* Create Thread Input */}
       {!showReportedOnly && (
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mt-6 sticky bottom-0">
+        <div className="bg-cream-card rounded-xl p-4 shadow-sm border border-cream-dim mt-6 sticky bottom-0">
           <div className="flex gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-              {currentUserId?.charAt(0)?.toUpperCase() || 'Y'}
+            <div className="w-10 h-10 bg-gradient-to-br from-plum-500 to-amber-400 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+              {currentUsername?.charAt(0)?.toUpperCase() || 'Y'}
             </div>
             <div className="flex-1">
               <textarea
                 placeholder="Start a discussion..."
                 value={newThreadText}
                 onChange={(e) => setNewThreadText(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
+                className="w-full px-3 py-2 border border-cream-dim bg-cream-card text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-plum-300 resize-none"
                 rows="3"
               />
               <div className="flex justify-end mt-2">
@@ -431,7 +431,7 @@ const ThreadList = ({ clubId, currentUserId, clubColor, isAdmin, socket }) => {
                   onClick={handleCreateThread}
                   disabled={!newThreadText.trim() || submitting}
                   className="flex items-center gap-2 px-4 py-2 text-white rounded-lg font-semibold transition hover:opacity-90 disabled:opacity-50"
-                  style={{ background: clubColor || '#ab83c3' }}
+                  style={{ background: clubColor || '#6B4A63' }}
                 >
                   <Plus className="w-4 h-4" />
                   {submitting ? 'Posting...' : 'Post Thread'}

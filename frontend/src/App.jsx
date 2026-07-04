@@ -320,7 +320,7 @@ const AppContent = () => {
   const notifications = generateNotifications();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-cream">
       <NavBar 
         title={selectedClub ? null : 'Eventora'} 
         notifications={notifications}
@@ -402,9 +402,14 @@ const AppContent = () => {
         )}
       </div>
 
-      {!selectedClub && (
-        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
-      )}
+      <BottomNav 
+        activeTab={activeTab} 
+        setActiveTab={(tab) => {
+          setSelectedClub(null);
+          setActiveClubTab('posts');
+          setActiveTab(tab);
+        }} 
+      />
     </div>
   );
 };

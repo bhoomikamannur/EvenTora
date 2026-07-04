@@ -32,22 +32,22 @@ const ReportModal = ({ onClose, onSubmit, type = 'thread' }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md">
+      <div className="bg-cream-card rounded-2xl w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-red-500" />
-            <h3 className="text-xl font-bold">Report {type}</h3>
+            <h3 className="text-xl font-display font-semibold text-ink">Report {type}</h3>
           </div>
           <button 
             onClick={onClose} 
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-2 hover:bg-cream-dim rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         
         <div className="p-6 space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-ink-muted">
             Help us understand what's wrong with this {type}.
           </p>
           
@@ -59,7 +59,7 @@ const ReportModal = ({ onClose, onSubmit, type = 'thread' }) => {
                 className={`w-full text-left p-3 rounded-lg border-2 transition ${
                   selectedReason === r
                     ? 'border-red-500 bg-red-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    : 'border-cream-dim hover:border-plum-300'
                 }`}
               >
                 <span className="font-medium">{r}</span>
@@ -87,7 +87,7 @@ const ReportModal = ({ onClose, onSubmit, type = 'thread' }) => {
             </button>
             <button
               onClick={onClose}
-              className="flex-1 py-3 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition"
+              className="flex-1 py-3 border-2 border-cream-dim rounded-xl font-semibold hover:bg-cream-dim transition"
             >
               Cancel
             </button>

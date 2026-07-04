@@ -21,21 +21,21 @@ const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }
   const currentLikes = post.likes || 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4">
+    <div className="bg-cream-card rounded-2xl shadow-sm border border-cream-dim mb-4">
 
       {/* POST CONTENT */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl" 
+              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
               style={{ background: club?.color }}
             >
               {club?.logo}
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">{post.author}</h4>
-              <p className="text-xs text-gray-500">
+              <h4 className="font-semibold text-ink">{post.author}</h4>
+              <p className="text-xs text-ink-muted">
                 {post.timestamp}
                 {post.createdAt && (
                   <span className="ml-2" title={new Date(post.createdAt).toLocaleString()}>
@@ -48,18 +48,18 @@ const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }
 
           {isAdmin && (
             <div className="flex gap-2">
-              <button onClick={() => onEdit(post)} className="p-2 hover:bg-gray-100 rounded-lg">
-                <Edit2 className="w-4 h-4 text-gray-600" />
+              <button onClick={() => onEdit(post)} className="p-2 hover:bg-cream-dim rounded-lg">
+                <Edit2 className="w-4 h-4 text-plum-600" />
               </button>
-              <button onClick={() => onDelete(post._id)} className="p-2 hover:bg-gray-100 rounded-lg">
-                <Trash2 className="w-4 h-4 text-red-600" />
+              <button onClick={() => onDelete(post._id)} className="p-2 hover:bg-cream-dim rounded-lg">
+                <Trash2 className="w-4 h-4 text-red-500" />
               </button>
             </div>
           )}
         </div>
 
-        <h3 className="font-bold text-lg mb-2">{post.eventTitle}</h3>
-        <p className="text-gray-700 mb-3">{post.caption}</p>
+        <h3 className="font-display font-semibold text-lg mb-2 text-ink">{post.eventTitle}</h3>
+        <p className="text-ink-soft mb-3">{post.caption}</p>
 
         {post.images && post.images.length > 0 && (
           <div className="grid grid-cols-2 gap-2 mb-3">
@@ -68,7 +68,7 @@ const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }
                 key={idx} 
                 src={getImageUrl(img)} 
                 alt="Post" 
-                className="w-full h-40 object-cover rounded-lg"
+                className="w-full h-40 object-cover rounded-xl2"
                 onError={(e) => {
                   console.error(`❌ Image failed to load: ${img}`);
                   e.target.style.display = 'none';
@@ -80,11 +80,11 @@ const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }
       </div>
 
       {/* ACTION BAR */}
-      <div className="flex items-center gap-6 px-4 py-3 border-t border-gray-100">
+      <div className="flex items-center gap-6 px-4 py-3 border-t border-cream-dim">
         <button 
           onClick={handleLikeClick}
           className={`flex items-center gap-2 ${
-            currentIsLiked ? 'text-red-500' : 'text-gray-600'
+            currentIsLiked ? 'text-red-500' : 'text-ink-muted'
           }`}
         >
           <Heart className={`w-5 h-5 ${currentIsLiked ? 'fill-current' : ''}`} />
@@ -93,13 +93,13 @@ const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }
 
         <button 
           onClick={() => setShowComments(prev => !prev)}
-          className="flex items-center gap-2 text-gray-600"
+          className="flex items-center gap-2 text-ink-muted"
         >
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm">{post.comments?.length || 0}</span>
         </button>
 
-        <button className="flex items-center gap-2 text-gray-600">
+        <button className="flex items-center gap-2 text-ink-muted">
           <Share2 className="w-5 h-5" />
         </button>
       </div>

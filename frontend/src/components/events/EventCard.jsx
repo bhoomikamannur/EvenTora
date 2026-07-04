@@ -5,55 +5,55 @@ const EventCard = ({ event, onRSVP, hasRSVPd, onDelete, isAdmin, onEdit }) => {
   const club = event.clubId;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
+    <div className="bg-cream-card rounded-2xl shadow-sm border border-cream-dim p-6 mb-4">
       <div className="flex items-start gap-4 mb-4">
         <div 
-          className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0" 
+          className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
           style={{ background: club?.color }}
         >
           {club?.logo}
         </div>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-xl mb-1">{event.title}</h3>
-          <p className="text-sm text-gray-600">{club?.name}</p>
+          <h3 className="font-display font-semibold text-xl mb-1 text-ink">{event.title}</h3>
+          <p className="text-sm text-ink-muted">{club?.name}</p>
         </div>
         
         {isAdmin && (
           <div className="flex items-center gap-2">
             <button 
               onClick={() => onEdit && onEdit(event)} 
-              className="p-2 hover:bg-gray-100 rounded-lg transition"
+              className="p-2 hover:bg-cream-dim rounded-lg transition"
             >
-              <Edit2 className="w-5 h-5 text-gray-600" />
+              <Edit2 className="w-5 h-5 text-plum-600" />
             </button>
             <button 
               onClick={() => onDelete && onDelete(event._id)} 
-              className="p-2 hover:bg-gray-100 rounded-lg transition"
+              className="p-2 hover:bg-cream-dim rounded-lg transition"
             >
-              <Trash2 className="w-5 h-5 text-red-600" />
+              <Trash2 className="w-5 h-5 text-red-500" />
             </button>
           </div>
         )}
       </div>
       
       {event.description && (
-        <p className="text-gray-700 mb-4">{event.description}</p>
+        <p className="text-ink-soft mb-4">{event.description}</p>
       )}
       
       <div className="space-y-2 mb-4 text-sm">
-        <div className="flex items-center gap-2 text-gray-600">
-          <span className="font-semibold">📍 Venue:</span> {event.venue}
+        <div className="flex items-center gap-2 text-ink-muted">
+          <span className="font-semibold text-ink">📍 Venue:</span> {event.venue}
         </div>
-        <div className="flex items-center gap-2 text-gray-600">
-          <span className="font-semibold">📅 Date:</span> {new Date(event.date).toLocaleDateString()}
+        <div className="flex items-center gap-2 text-ink-muted">
+          <span className="font-semibold text-ink">📅 Date:</span> {new Date(event.date).toLocaleDateString()}
         </div>
-        <div className="flex items-center gap-2 text-gray-600">
-          <span className="font-semibold">⏰ Time:</span> {event.time}
+        <div className="flex items-center gap-2 text-ink-muted">
+          <span className="font-semibold text-ink">⏰ Time:</span> {event.time}
         </div>
         {!event.isAcademic && (
-          <div className="flex items-center gap-2 text-gray-600">
-            <span className="font-semibold">👥 RSVPs:</span> {event.rsvps}
+          <div className="flex items-center gap-2 text-ink-muted">
+            <span className="font-semibold text-ink">👥 RSVPs:</span> {event.rsvps}
           </div>
         )}
       </div>
@@ -63,9 +63,9 @@ const EventCard = ({ event, onRSVP, hasRSVPd, onDelete, isAdmin, onEdit }) => {
           onClick={() => onRSVP(event._id)} 
           disabled={hasRSVPd}
           className={`w-full py-3 rounded-xl font-semibold transition ${
-            hasRSVPd ? 'bg-gray-200 text-gray-700' : 'text-white'
+            hasRSVPd ? 'bg-cream-dim text-ink-soft' : 'text-white'
           }`}
-          style={!hasRSVPd ? { background: 'linear-gradient(135deg, #ab83c3 0%, #ff337e 100%)' } : {}}
+          style={!hasRSVPd ? { background: '#7A9B76' } : {}}
         >
           {hasRSVPd ? '✓ RSVP Confirmed' : 'RSVP Now'}
         </button>

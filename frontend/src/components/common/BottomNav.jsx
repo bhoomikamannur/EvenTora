@@ -10,19 +10,25 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+    <div className="fixed bottom-0 left-0 right-0 bg-cream-card border-t border-cream-dim z-40">
       <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-around">
         {tabs.map(tab => (
           <button 
             key={tab.id} 
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-col items-center gap-1 py-2 px-4 rounded-lg transition ${
-              activeTab === tab.id ? 'text-white' : 'text-gray-500'
-            }`}
-            style={activeTab === tab.id ? { background: '#ab83c3' } : {}}
+            className="flex flex-col items-center gap-1 py-2 px-4 transition"
           >
-            <tab.icon className="w-5 h-5" />
-            <span className="text-xs font-medium">{tab.label}</span>
+            <span
+              className={`flex items-center justify-center w-9 h-9 rounded-full transition ${
+                activeTab === tab.id ? '' : 'text-ink-faint'
+              }`}
+              style={activeTab === tab.id ? { background: '#F0E4D3', color: '#5C3B54' } : {}}
+            >
+              <tab.icon className="w-5 h-5" />
+            </span>
+            <span className={`text-xs font-medium ${activeTab === tab.id ? 'text-plum-600' : 'text-ink-faint'}`}>
+              {tab.label}
+            </span>
           </button>
         ))}
       </div>

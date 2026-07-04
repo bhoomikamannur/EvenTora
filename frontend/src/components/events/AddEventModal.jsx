@@ -37,12 +37,12 @@ const AddEventModal = ({ onClose, onAdd, clubId }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg">
+      <div className="bg-cream-card rounded-2xl w-full max-w-lg">
         <div className="flex items-center justify-between p-6 border-b">
-          <h3 className="text-xl font-bold">Add Event</h3>
+          <h3 className="text-xl font-display font-semibold text-ink">Add Event</h3>
           <button 
             onClick={onClose} 
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-2 hover:bg-cream-dim rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -54,14 +54,14 @@ const AddEventModal = ({ onClose, onAdd, clubId }) => {
             placeholder="Event Name *" 
             value={title} 
             onChange={(e) => setTitle(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <textarea 
             placeholder="Description (optional)" 
             value={description} 
             onChange={(e) => setDescription(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
             rows="3" 
           />
           
@@ -70,28 +70,28 @@ const AddEventModal = ({ onClose, onAdd, clubId }) => {
             placeholder="Venue *" 
             value={venue} 
             onChange={(e) => setVenue(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <input 
             type="date" 
             value={date} 
             onChange={(e) => setDate(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <input 
             type="time" 
             value={time} 
             onChange={(e) => setTime(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <button 
             onClick={handleSubmit} 
             disabled={loading}
             className="w-full py-3 rounded-xl font-semibold text-white disabled:opacity-50 transition" 
-            style={{ background: '#ab83c3' }}
+            style={{ background: '#6B4A63' }}
           >
             {loading ? 'Adding...' : 'Add Event'}
           </button>

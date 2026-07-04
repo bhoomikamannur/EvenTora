@@ -44,24 +44,24 @@ const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+    <div className="bg-cream-card rounded-2xl shadow-sm border border-cream-dim p-4">
       <div className="flex items-center justify-between mb-4">
         <button 
           onClick={previousMonth} 
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
+          className="p-2 hover:bg-cream-dim rounded-lg transition"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5 text-plum-600" />
         </button>
         
-        <h3 className="font-bold text-xl">
+        <h3 className="font-display font-semibold text-xl text-ink">
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h3>
         
         <button 
           onClick={nextMonth} 
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
+          className="p-2 hover:bg-cream-dim rounded-lg transition"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5 text-plum-600" />
         </button>
       </div>
 
@@ -69,7 +69,7 @@ const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }
         <button 
           onClick={() => setShowAddEvent(true)} 
           className="w-full mb-4 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition hover:opacity-90" 
-          style={{ background: '#ab83c3' }}
+          style={{ background: '#6B4A63' }}
         >
           <Plus className="w-5 h-5" /> Add Event
         </button>
@@ -77,7 +77,7 @@ const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }
 
       <div className="grid grid-cols-7 gap-1 mb-2">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">
+          <div key={day} className="text-center text-xs font-semibold text-ink-muted py-2">
             {day}
           </div>
         ))}
@@ -89,20 +89,20 @@ const CalendarView = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }
           return (
             <div 
               key={idx} 
-              className={`min-h-20 p-1 border rounded-lg ${
-                day ? 'bg-white hover:bg-gray-50 cursor-pointer' : 'bg-gray-50'
+              className={`min-h-20 p-1 border border-cream-dim rounded-lg ${
+                day ? 'bg-cream-card hover:bg-cream-dim cursor-pointer' : 'bg-cream-dim/40'
               }`}
             >
               {day && (
                 <>
-                  <div className="font-semibold text-sm mb-1">{day}</div>
+                  <div className="font-semibold text-sm mb-1 text-ink">{day}</div>
                   {dayEvents.map(event => (
                     <div 
                       key={event._id} 
                       onClick={() => onEventClick && onEventClick(event)}
                       className="text-xs p-1 rounded mb-1 truncate cursor-pointer hover:opacity-80 transition" 
                       style={{ 
-                        background: event.isAcademic ? '#fef3c7' : '#ddd6fe' 
+                        background: event.isAcademic ? '#fef3c7' : '#E4D2E0' 
                       }}
                       title={event.title}
                     >

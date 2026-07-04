@@ -314,11 +314,11 @@ const CommunityScreen = ({
   if (!club) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 mb-2">Club not found</p>
-        <p className="text-xs text-gray-400 mb-4">ClubID: {clubId}</p>
+        <p className="text-ink-muted mb-2">Club not found</p>
+        <p className="text-xs text-ink-faint mb-4">ClubID: {clubId}</p>
         <button 
           onClick={onBack}
-          className="mt-4 px-6 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition"
+          className="mt-4 px-6 py-2 bg-plum-600 text-white rounded-xl hover:bg-plum-700 transition"
         >
           Go Back
         </button>
@@ -351,17 +351,17 @@ const CommunityScreen = ({
 
       {/* Club Info */}
       <div className="text-center mt-12 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{club.name}</h2>
-        <p className="text-gray-600 mb-4">{club.communityMembers} members</p>
+        <h2 className="text-2xl font-display font-semibold text-ink mb-1">{club.name}</h2>
+        <p className="text-ink-muted mb-4">{club.communityMembers} members</p>
         {user?.userType === 'admin' && user?.adminClubId === clubId ? (
-          <div className="px-8 py-3 rounded-xl font-semibold bg-green-100 text-green-700">
+          <div className="px-8 py-3 rounded-xl font-semibold bg-sage-400/20 text-sage-600">
             🎯 You are managing this community
           </div>
         ) : (
           <button 
             onClick={() => onJoin(clubId)}
             className={`px-8 py-3 rounded-xl font-semibold transition hover:opacity-90 ${
-              isJoined ? 'bg-gray-200 text-gray-700 cursor-default' : 'text-white hover:shadow-lg'
+              isJoined ? 'bg-cream-dim text-ink-soft cursor-default' : 'text-white hover:shadow-lg'
             }`}
             style={!isJoined ? { background: club.color } : {}}
             disabled={isJoined}
@@ -385,7 +385,7 @@ const CommunityScreen = ({
             }}
             disabled={!isJoined && lockedTabs.includes(tab)}
             className={`px-6 py-2 rounded-xl font-medium whitespace-nowrap transition ${
-              activeTab === tab ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              activeTab === tab ? 'text-white' : 'bg-cream-dim text-ink-muted hover:bg-plum-50'
             } ${!isJoined && lockedTabs.includes(tab) ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={activeTab === tab ? { background: club.color } : {}}
             title={!isJoined && lockedTabs.includes(tab) ? 'Join the community to unlock' : ''}
@@ -422,8 +422,8 @@ const CommunityScreen = ({
                 );
               })
             ) : (
-              <div className="text-center py-12 bg-white rounded-xl">
-                <p className="text-gray-500">No posts yet</p>
+              <div className="text-center py-12 bg-cream-card rounded-xl">
+                <p className="text-ink-muted">No posts yet</p>
               </div>
             )}
           </div>
@@ -446,8 +446,8 @@ const CommunityScreen = ({
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 bg-white rounded-xl">
-                <p className="text-gray-500">No events yet</p>
+              <div className="text-center py-12 bg-cream-card rounded-xl">
+                <p className="text-ink-muted">No events yet</p>
               </div>
             )}
           </div>
@@ -457,8 +457,8 @@ const CommunityScreen = ({
         {activeTab === 'members' && (
           <div>
             {!isJoined ? (
-              <div className="text-center py-12 bg-white rounded-xl">
-                <p className="text-gray-500">Join the community to view members</p>
+              <div className="text-center py-12 bg-cream-card rounded-xl">
+                <p className="text-ink-muted">Join the community to view members</p>
               </div>
             ) : loading ? (
               <LoadingSpinner message="Loading members..." />
@@ -476,8 +476,8 @@ const CommunityScreen = ({
                     />
                   ))
                 ) : (
-                  <div className="text-center py-12 bg-white rounded-xl">
-                    <p className="text-gray-500">No members added yet</p>
+                  <div className="text-center py-12 bg-cream-card rounded-xl">
+                    <p className="text-ink-muted">No members added yet</p>
                   </div>
                 )}
               </div>
@@ -489,8 +489,8 @@ const CommunityScreen = ({
         {activeTab === 'media' && (
           <div>
             {!isJoined ? (
-              <div className="text-center py-12 bg-white rounded-xl">
-                <p className="text-gray-500">Join the community to view media</p>
+              <div className="text-center py-12 bg-cream-card rounded-xl">
+                <p className="text-ink-muted">Join the community to view media</p>
               </div>
             ) : loading ? (
               <LoadingSpinner message="Loading media..." />
@@ -510,8 +510,8 @@ const CommunityScreen = ({
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-white rounded-xl">
-                    <p className="text-gray-500">No media shared yet</p>
+                  <div className="text-center py-12 bg-cream-card rounded-xl">
+                    <p className="text-ink-muted">No media shared yet</p>
                   </div>
                 )}
               </div>
@@ -523,15 +523,15 @@ const CommunityScreen = ({
         {activeTab === 'threads' && (
           <div>
             {!isJoined ? (
-              <div className="text-center py-12 bg-white rounded-xl">
-                <p className="text-gray-500">Join the community to view threads</p>
+              <div className="text-center py-12 bg-cream-card rounded-xl">
+                <p className="text-ink-muted">Join the community to view threads</p>
               </div>
             ) : (
               <div>
                 {/* 🟢 Online Count Badge */}
                 <div className="flex items-center gap-2 mb-4 px-1">
                   <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse inline-block"></span>
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className="text-sm font-medium text-ink-muted">
                     {onlineCount} {onlineCount === 1 ? 'person' : 'people'} online
                   </span>
                 </div>
@@ -539,6 +539,7 @@ const CommunityScreen = ({
                 <ThreadList 
                   clubId={clubId}
                   currentUserId={user?._id}
+                  currentUsername={user?.username || user?.name}
                   clubColor={club.color}
                   isAdmin={isAdmin}
                   socket={socket}

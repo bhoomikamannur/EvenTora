@@ -10,12 +10,17 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f9fafb;
+  background-color: #FAF3EA;
+  color: #3A3234;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
 }
 
 code {
@@ -30,17 +35,17 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #F0E4D3;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #ab83c3;
+  background: #B285A5;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9370b8;
+  background: #6B4A63;
 }
 
 /* Line clamp utility */

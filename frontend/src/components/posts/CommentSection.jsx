@@ -49,40 +49,40 @@ const CommentSection = ({ post, onUpdate }) => {
     };
 
   return (
-    <div className="px-4 pb-4 border-t border-gray-100">
+    <div className="px-4 pb-4 border-t border-cream-dim">
 
       {/* COMMENTS LIST */}
       <div className="max-h-60 overflow-y-auto space-y-3 mt-3">
         {comments.length > 0 ? (
           [...comments].reverse().map((c) => (
-            <div key={c._id} className="flex justify-between bg-gray-50 p-3 rounded-xl relative">
+            <div key={c._id} className="flex justify-between bg-cream-dim/50 p-3 rounded-xl relative">
 
               <div>
-                <p className="text-sm font-semibold">{c.username || 'Anonymous'}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-semibold text-ink">{c.username || 'Anonymous'}</p>
+                <p className="text-xs text-ink-muted">
                   {new Date(c.createdAt).toLocaleDateString()} {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
-                <p className="text-sm mt-1">{c.text}</p>
+                <p className="text-sm mt-1 text-ink-soft">{c.text}</p>
               </div>
 
               {/* 3 DOT MENU */}
               <div className="relative">
                 <button onClick={() => setActiveMenu(activeMenu === c._id ? null : c._id)}>
-                  <MoreVertical className="w-4 h-4 text-gray-500" />
+                  <MoreVertical className="w-4 h-4 text-ink-muted" />
                 </button>
 
                 {activeMenu === c._id && (
-                  <div className="absolute right-0 mt-2 w-28 bg-white border rounded-lg shadow-md">
+                  <div className="absolute right-0 mt-2 w-28 bg-cream-card border border-cream-dim rounded-lg shadow-md">
                     <button
                       onClick={() => handleDeleteComment(c._id)}
-                      className="block w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-gray-100"
+                      className="block w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-cream-dim"
                     >
                       Delete
                     </button>
-                    <button className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100">
+                    <button className="block w-full text-left px-3 py-2 text-sm hover:bg-cream-dim">
                       Edit
                     </button>
-                    <button className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100">
+                    <button className="block w-full text-left px-3 py-2 text-sm hover:bg-cream-dim">
                       Report
                     </button>
                   </div>
@@ -92,7 +92,7 @@ const CommentSection = ({ post, onUpdate }) => {
             </div>
           ))
         ) : (
-          <p className="text-sm text-gray-400">No comments yet</p>
+          <p className="text-sm text-ink-faint">No comments yet</p>
         )}
       </div>
 
@@ -102,9 +102,9 @@ const CommentSection = ({ post, onUpdate }) => {
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write a comment..."
-          className="flex-1 px-3 py-2 border rounded-full text-sm"
+          className="flex-1 px-3 py-2 border border-cream-dim rounded-full text-sm bg-cream-card text-ink"
         />
-        <button className="p-2 bg-purple-600 text-white rounded-full">
+        <button className="p-2 bg-plum-600 text-white rounded-full">
           <Send className="w-4 h-4" />
         </button>
       </form>

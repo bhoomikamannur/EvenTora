@@ -4,7 +4,7 @@ import CalendarView from '../components/events/CalendarView';
 const CalendarScreen = ({ events, isAdmin, adminClubId, onAddEvent, onEventClick }) => {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">Event Calendar</h2>
+      <h2 className="text-2xl font-display font-semibold text-ink mb-4">Event Calendar</h2>
       <CalendarView 
         events={events} 
         isAdmin={isAdmin} 

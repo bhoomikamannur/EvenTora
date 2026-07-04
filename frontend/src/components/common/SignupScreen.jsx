@@ -101,24 +101,24 @@ const SignupScreen = ({ onSwitchToLogin }) => {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'linear-gradient(135deg, #ab83c3 0%, #86c6fd 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #6B4A63 0%, #E8A33D 100%)' }}
     >
-      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-        <h1 className="text-4xl font-bold text-center mb-2" style={{ color: '#ab83c3' }}>
+      <div className="bg-cream-card rounded-3xl shadow-2xl p-8 w-full max-w-md">
+        <h1 className="text-4xl font-display font-semibold text-center mb-2" style={{ color: '#6B4A63' }}>
           Eventora
         </h1>
-        <p className="text-center text-gray-600 mb-6">Join Our College Community</p>
+        <p className="text-center text-ink-muted mb-6">Join Our College Community</p>
 
         {/* Step Indicator */}
         <div className="flex gap-2 mb-8">
           <div
             className={`h-1 flex-1 rounded-full transition ${
-              step >= 1 ? 'bg-purple-500' : 'bg-gray-200'
+              step >= 1 ? 'bg-plum-500' : 'bg-cream-dim'
             }`}
           />
           <div
             className={`h-1 flex-1 rounded-full transition ${
-              step >= 2 ? 'bg-purple-500' : 'bg-gray-200'
+              step >= 2 ? 'bg-plum-500' : 'bg-cream-dim'
             }`}
           />
         </div>
@@ -132,7 +132,7 @@ const SignupScreen = ({ onSwitchToLogin }) => {
         {step === 1 ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Full Name
               </label>
               <input
@@ -141,12 +141,12 @@ const SignupScreen = ({ onSwitchToLogin }) => {
                 placeholder="Enter your full name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400"
+                className="w-full p-4 border-2 border-cream-dim rounded-xl focus:outline-none focus:border-plum-300"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Email ID
               </label>
               <input
@@ -155,16 +155,16 @@ const SignupScreen = ({ onSwitchToLogin }) => {
                 placeholder="yourname@iiitdwd.ac.in"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400"
+                className="w-full p-4 border-2 border-cream-dim rounded-xl focus:outline-none focus:border-plum-300"
               />
-              <p className="text-xs text-gray-500 mt-1">Must be an IIIT Dharwad email</p>
+              <p className="text-xs text-ink-muted mt-1">Must be an IIIT Dharwad email</p>
             </div>
 
             <button
               onClick={handleNextStep}
               disabled={loading}
               className="w-full py-4 rounded-xl font-semibold text-white text-lg disabled:opacity-50 transition mt-6"
-              style={{ background: 'linear-gradient(135deg, #ab83c3 0%, #ff337e 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #6B4A63 0%, #D8A13A 100%)' }}
             >
               Next Step
             </button>
@@ -172,7 +172,7 @@ const SignupScreen = ({ onSwitchToLogin }) => {
         ) : (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Username
               </label>
               <input
@@ -181,15 +181,15 @@ const SignupScreen = ({ onSwitchToLogin }) => {
                 placeholder="Choose your username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400"
+                className="w-full p-4 border-2 border-cream-dim rounded-xl focus:outline-none focus:border-plum-300"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-ink-muted mt-1">
                 3-20 characters, letters/numbers/underscores only
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Password
               </label>
               <input
@@ -198,13 +198,13 @@ const SignupScreen = ({ onSwitchToLogin }) => {
                 placeholder="Create a password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400"
+                className="w-full p-4 border-2 border-cream-dim rounded-xl focus:outline-none focus:border-plum-300"
               />
-              <p className="text-xs text-gray-500 mt-1">At least 6 characters</p>
+              <p className="text-xs text-ink-muted mt-1">At least 6 characters</p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Confirm Password
               </label>
               <input
@@ -213,7 +213,7 @@ const SignupScreen = ({ onSwitchToLogin }) => {
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-400"
+                className="w-full p-4 border-2 border-cream-dim rounded-xl focus:outline-none focus:border-plum-300"
               />
             </div>
 
@@ -221,7 +221,7 @@ const SignupScreen = ({ onSwitchToLogin }) => {
               <button
                 onClick={handlePreviousStep}
                 disabled={loading}
-                className="flex-1 py-4 rounded-xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition disabled:opacity-50"
+                className="flex-1 py-4 rounded-xl font-semibold text-ink-soft bg-cream-dim hover:bg-plum-50 transition disabled:opacity-50"
               >
                 Back
               </button>
@@ -229,7 +229,7 @@ const SignupScreen = ({ onSwitchToLogin }) => {
                 onClick={handleSignup}
                 disabled={loading}
                 className="flex-1 py-4 rounded-xl font-semibold text-white text-lg disabled:opacity-50 transition"
-                style={{ background: 'linear-gradient(135deg, #ab83c3 0%, #ff337e 100%)' }}
+                style={{ background: 'linear-gradient(135deg, #6B4A63 0%, #D8A13A 100%)' }}
               >
                 {loading ? 'Creating Account...' : 'Sign Up'}
               </button>
@@ -238,13 +238,13 @@ const SignupScreen = ({ onSwitchToLogin }) => {
         )}
 
         {/* Switch to Login */}
-        <div className="mt-6 text-center text-sm text-gray-600">
+        <div className="mt-6 text-center text-sm text-ink-muted">
           <p>
             Already have an account?{' '}
             <button
               onClick={onSwitchToLogin}
               className="font-semibold hover:underline"
-              style={{ color: '#ab83c3' }}
+              style={{ color: '#6B4A63' }}
             >
               Sign In
             </button>

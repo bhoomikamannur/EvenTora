@@ -86,12 +86,12 @@ const AddPostModal = ({ onClose, onAdd, clubId }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-96 overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
-          <h3 className="text-xl font-bold">Add Post</h3>
+      <div className="bg-cream-card rounded-2xl w-full max-w-lg max-h-96 overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-cream-dim sticky top-0 bg-cream-card">
+          <h3 className="text-xl font-display font-semibold text-ink">Add Post</h3>
           <button 
             onClick={onClose} 
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-2 hover:bg-cream-dim rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -103,23 +103,23 @@ const AddPostModal = ({ onClose, onAdd, clubId }) => {
             placeholder="Event Title *"
             value={eventTitle} 
             onChange={(e) => setEventTitle(e.target.value)}
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <textarea 
             placeholder="Caption *"
             value={caption} 
             onChange={(e) => setCaption(e.target.value)}
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300"
             rows="4" 
           />
           
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-ink-soft mb-2">
               Upload Images (optional, max 5MB each)
             </label>
-            <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-purple-400 transition">
+            <div className="relative border-2 border-dashed border-cream-dim rounded-xl p-4 text-center cursor-pointer hover:border-plum-300 transition">
               <input 
                 type="file" 
                 multiple
@@ -128,8 +128,8 @@ const AddPostModal = ({ onClose, onAdd, clubId }) => {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <div className="flex flex-col items-center gap-2">
-                <Upload className="w-6 h-6 text-gray-400" />
-                <p className="text-sm text-gray-600">Click or drag images here</p>
+                <Upload className="w-6 h-6 text-ink-faint" />
+                <p className="text-sm text-ink-muted">Click or drag images here</p>
               </div>
             </div>
           </div>
@@ -137,7 +137,7 @@ const AddPostModal = ({ onClose, onAdd, clubId }) => {
           {/* Image Preview */}
           {imagePreview.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-700">{imagePreview.length} image(s) selected</p>
+              <p className="text-sm font-semibold text-ink-soft">{imagePreview.length} image(s) selected</p>
               <div className="grid grid-cols-2 gap-2">
                 {imagePreview.map((preview, idx) => (
                   <div key={idx} className="relative group">
@@ -162,7 +162,7 @@ const AddPostModal = ({ onClose, onAdd, clubId }) => {
             onClick={handleSubmit}
             disabled={loading}
             className="w-full py-3 rounded-xl font-semibold text-white disabled:opacity-50 transition" 
-            style={{ background: '#ab83c3' }}
+            style={{ background: '#6B4A63' }}
           >
             {loading ? 'Adding...' : 'Add Post'}
           </button>

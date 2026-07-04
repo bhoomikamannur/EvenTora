@@ -10,13 +10,13 @@ const Toast = ({ message, type = 'info', duration = 3000, onClose }) => {
   const bgColor = {
     success: 'bg-green-50 border-green-200',
     error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200'
+    info: 'bg-amber-400/10 border-amber-400/40'
   }[type];
 
   const textColor = {
     success: 'text-green-800',
     error: 'text-red-800',
-    info: 'text-blue-800'
+    info: 'text-plum-600'
   }[type];
 
   const Icon = {
@@ -31,7 +31,7 @@ const Toast = ({ message, type = 'info', duration = 3000, onClose }) => {
       <p className={`flex-1 text-sm font-medium ${textColor}`}>{message}</p>
       <button
         onClick={onClose}
-        className="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600"
+        className="flex-shrink-0 ml-2 text-ink-faint hover:text-ink-muted"
       >
         <X className="w-5 h-5" />
       </button>

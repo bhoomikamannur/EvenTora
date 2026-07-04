@@ -74,12 +74,12 @@ const AddMediaModal = ({ clubId, onClose, onAdd }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg">
+      <div className="bg-cream-card rounded-2xl w-full max-w-lg">
         <div className="flex items-center justify-between p-6 border-b">
-          <h3 className="text-xl font-bold">Add Media</h3>
+          <h3 className="text-xl font-display font-semibold text-ink">Add Media</h3>
           <button 
             onClick={onClose} 
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-2 hover:bg-cream-dim rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -90,21 +90,21 @@ const AddMediaModal = ({ clubId, onClose, onAdd }) => {
             placeholder="Media Title *" 
             value={title} 
             onChange={e => setTitle(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <textarea 
             placeholder="Description (optional)" 
             value={description} 
             onChange={e => setDescription(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
             rows="3" 
           />
           
           <select 
             value={type} 
             onChange={e => setType(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300"
           >
             <option value="youtube">YouTube</option>
             <option value="instagram">Instagram</option>
@@ -118,7 +118,7 @@ const AddMediaModal = ({ clubId, onClose, onAdd }) => {
               value={link} 
               onChange={handleLinkChange}
               className={`w-full p-3 border rounded-xl focus:outline-none focus:ring-2 ${
-                urlError ? 'border-red-500 focus:ring-red-400' : 'border-gray-300 focus:ring-purple-400'
+                urlError ? 'border-red-500 focus:ring-red-400' : 'border-cream-dim focus:ring-plum-300'
               }`}
             />
             {urlError && (
@@ -134,13 +134,13 @@ const AddMediaModal = ({ clubId, onClose, onAdd }) => {
               onClick={handleAdd} 
               disabled={loading || urlError || !link.trim()}
               className="flex-1 py-3 rounded-xl font-semibold text-white disabled:opacity-50 transition" 
-              style={{ background: '#ab83c3' }}
+              style={{ background: '#6B4A63' }}
             >
               {loading ? 'Adding...' : 'Add Media'}
             </button>
             <button 
               onClick={onClose} 
-              className="flex-1 py-3 rounded-xl font-semibold border hover:bg-gray-50 transition"
+              className="flex-1 py-3 rounded-xl font-semibold border hover:bg-cream-dim transition"
             >
               Cancel
             </button>

@@ -32,12 +32,12 @@ const AddMemberModal = ({ clubId, onClose, onAdd }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md">
+      <div className="bg-cream-card rounded-2xl w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b">
-          <h3 className="text-xl font-bold">Add Member</h3>
+          <h3 className="text-xl font-display font-semibold text-ink">Add Member</h3>
           <button 
             onClick={onClose} 
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-2 hover:bg-cream-dim rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -48,7 +48,7 @@ const AddMemberModal = ({ clubId, onClose, onAdd }) => {
             placeholder="Full Name *" 
             value={name} 
             onChange={e => setName(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <input 
@@ -56,13 +56,13 @@ const AddMemberModal = ({ clubId, onClose, onAdd }) => {
             placeholder="Email (optional)" 
             value={email} 
             onChange={e => setEmail(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <select 
             value={position} 
             onChange={e => setPosition(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300"
           >
             <option>Lead</option>
             <option>Co-Lead</option>
@@ -75,13 +75,13 @@ const AddMemberModal = ({ clubId, onClose, onAdd }) => {
               onClick={handleAdd} 
               disabled={loading}
               className="flex-1 py-3 rounded-xl font-semibold text-white disabled:opacity-50 transition" 
-              style={{ background: '#ab83c3' }}
+              style={{ background: '#6B4A63' }}
             >
               {loading ? 'Adding...' : 'Add Member'}
             </button>
             <button 
               onClick={onClose} 
-              className="flex-1 py-3 rounded-xl font-semibold border hover:bg-gray-50 transition"
+              className="flex-1 py-3 rounded-xl font-semibold border hover:bg-cream-dim transition"
             >
               Cancel
             </button>

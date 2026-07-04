@@ -16,12 +16,12 @@ const MediaCard = ({ media, club, onDelete, onEdit, isAdmin }) => {
       case 'youtube': return '#FF0000';
       case 'instagram': return '#E4405F';
       case 'github': return '#333333';
-      default: return '#ab83c3';
+      default: return '#6B4A63';
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-cream-card rounded-2xl shadow-sm border border-cream-dim overflow-hidden">
       <div className="relative">
         <div 
           className="h-48 flex items-center justify-center text-6xl"
@@ -34,15 +34,15 @@ const MediaCard = ({ media, club, onDelete, onEdit, isAdmin }) => {
           <div className="absolute top-2 right-2 flex gap-2">
             <button 
               onClick={() => onEdit(media)} 
-              className="p-2 bg-white hover:bg-gray-100 rounded-lg shadow transition"
+              className="p-2 bg-cream-card hover:bg-cream-dim rounded-lg shadow transition"
             >
-              <Edit2 className="w-4 h-4 text-gray-600" />
+              <Edit2 className="w-4 h-4 text-plum-600" />
             </button>
             <button 
               onClick={() => onDelete(media._id)} 
-              className="p-2 bg-white hover:bg-gray-100 rounded-lg shadow transition"
+              className="p-2 bg-cream-card hover:bg-cream-dim rounded-lg shadow transition"
             >
-              <Trash2 className="w-4 h-4 text-red-600" />
+              <Trash2 className="w-4 h-4 text-red-500" />
             </button>
           </div>
         )}
@@ -56,13 +56,13 @@ const MediaCard = ({ media, club, onDelete, onEdit, isAdmin }) => {
           >
             {media.type.toUpperCase()}
           </div>
-          <span className="text-xs text-gray-500">{media.timestamp}</span>
+          <span className="text-xs text-ink-muted">{media.timestamp}</span>
         </div>
         
-        <h4 className="font-bold text-lg mb-1">{media.title}</h4>
+        <h4 className="font-display font-semibold text-lg mb-1 text-ink">{media.title}</h4>
         
         {media.description && (
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{media.description}</p>
+          <p className="text-ink-soft text-sm mb-3 line-clamp-2">{media.description}</p>
         )}
         
         <a 

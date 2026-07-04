@@ -129,9 +129,9 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-cream-card rounded-2xl shadow-sm border border-cream-dim p-6">
       <div className="text-center">
-        <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
+        <div className="w-24 h-24 bg-gradient-to-br from-plum-500 to-amber-400 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
           👤
         </div>
 
@@ -149,14 +149,14 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
 
         {!isEditingProfile && !isChangingPassword ? (
           <>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">{user?.name || 'User'}</h2>
-            <p className="text-gray-500 mb-1">@{user?.username}</p>
-            <p className="text-gray-500 mb-6">{user?.email}</p>
+            <h2 className="text-2xl font-display font-semibold text-ink mb-1">{user?.name || 'User'}</h2>
+            <p className="text-ink-muted mb-1">@{user?.username}</p>
+            <p className="text-ink-muted mb-6">{user?.email}</p>
 
             <div className="flex justify-center gap-8 mb-6">
               <div>
-                <p className="text-2xl font-bold text-gray-900">{joinedClubs.length}</p>
-                <p className="text-sm text-gray-500">Communities</p>
+                <p className="text-2xl font-bold text-ink">{joinedClubs.length}</p>
+                <p className="text-sm text-ink-muted">Communities</p>
               </div>
             </div>
 
@@ -164,7 +164,7 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
               <button
                 onClick={() => setIsEditingProfile(true)}
                 className="flex-1 py-2 rounded-lg font-semibold text-white text-sm flex items-center justify-center gap-2 transition"
-                style={{ background: '#ab83c3' }}
+                style={{ background: '#6B4A63' }}
               >
                 <Edit2 className="w-4 h-4" />
                 Edit Profile
@@ -172,7 +172,7 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
               <button
                 onClick={() => setIsChangingPassword(true)}
                 className="flex-1 py-2 rounded-lg font-semibold text-white text-sm flex items-center justify-center gap-2 transition"
-                style={{ background: '#86c6fd' }}
+                style={{ background: '#D8A13A' }}
               >
                 <Edit2 className="w-4 h-4" />
                 Change Password
@@ -181,10 +181,10 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
           </>
         ) : isEditingProfile ? (
           <div className="space-y-4 text-left">
-            <h3 className="font-bold text-lg text-center mb-4">Edit Profile</h3>
+            <h3 className="font-display font-semibold text-lg text-center mb-4">Edit Profile</h3>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Full Name
               </label>
               <input
@@ -192,12 +192,12 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
                 name="name"
                 value={editData.name}
                 onChange={handleEditChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-400"
+                className="w-full p-3 border-2 border-cream-dim rounded-lg focus:outline-none focus:border-plum-300"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Username
               </label>
               <input
@@ -206,9 +206,9 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
                 value={editData.username}
                 onChange={handleEditChange}
                 placeholder="3-20 characters, letters/numbers/underscores"
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-400"
+                className="w-full p-3 border-2 border-cream-dim rounded-lg focus:outline-none focus:border-plum-300"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-ink-muted mt-1">
                 Will be used to display your name in threads
               </p>
             </div>
@@ -217,7 +217,7 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
               <button
                 onClick={() => setIsEditingProfile(false)}
                 disabled={loading}
-                className="flex-1 py-3 rounded-lg font-semibold bg-gray-200 text-gray-700 flex items-center justify-center gap-2 hover:bg-gray-300 transition disabled:opacity-50"
+                className="flex-1 py-3 rounded-lg font-semibold bg-cream-dim text-ink-soft flex items-center justify-center gap-2 hover:bg-plum-50 transition disabled:opacity-50"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -226,7 +226,7 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
                 onClick={handleSaveProfile}
                 disabled={loading}
                 className="flex-1 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition disabled:opacity-50"
-                style={{ background: '#ab83c3' }}
+                style={{ background: '#6B4A63' }}
               >
                 <Check className="w-4 h-4" />
                 {loading ? 'Saving...' : 'Save Changes'}
@@ -235,10 +235,10 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
           </div>
         ) : (
           <div className="space-y-4 text-left">
-            <h3 className="font-bold text-lg text-center mb-4">Change Password</h3>
+            <h3 className="font-display font-semibold text-lg text-center mb-4">Change Password</h3>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Current Password
               </label>
               <input
@@ -246,12 +246,12 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
                 name="currentPassword"
                 value={passwordData.currentPassword}
                 onChange={handlePasswordChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-400"
+                className="w-full p-3 border-2 border-cream-dim rounded-lg focus:outline-none focus:border-plum-300"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 New Password
               </label>
               <input
@@ -259,13 +259,13 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
                 name="newPassword"
                 value={passwordData.newPassword}
                 onChange={handlePasswordChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-400"
+                className="w-full p-3 border-2 border-cream-dim rounded-lg focus:outline-none focus:border-plum-300"
               />
-              <p className="text-xs text-gray-500 mt-1">At least 6 characters</p>
+              <p className="text-xs text-ink-muted mt-1">At least 6 characters</p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-ink-soft mb-2">
                 Confirm New Password
               </label>
               <input
@@ -273,7 +273,7 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
                 name="confirmPassword"
                 value={passwordData.confirmPassword}
                 onChange={handlePasswordChange}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-400"
+                className="w-full p-3 border-2 border-cream-dim rounded-lg focus:outline-none focus:border-plum-300"
               />
             </div>
 
@@ -281,7 +281,7 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
               <button
                 onClick={() => setIsChangingPassword(false)}
                 disabled={loading}
-                className="flex-1 py-3 rounded-lg font-semibold bg-gray-200 text-gray-700 flex items-center justify-center gap-2 hover:bg-gray-300 transition disabled:opacity-50"
+                className="flex-1 py-3 rounded-lg font-semibold bg-cream-dim text-ink-soft flex items-center justify-center gap-2 hover:bg-plum-50 transition disabled:opacity-50"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -290,7 +290,7 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
                 onClick={handleChangePassword}
                 disabled={loading}
                 className="flex-1 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition disabled:opacity-50"
-                style={{ background: '#86c6fd' }}
+                style={{ background: '#D8A13A' }}
               >
                 <Check className="w-4 h-4" />
                 {loading ? 'Updating...' : 'Update Password'}
@@ -302,21 +302,21 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
         {!isEditingProfile && !isChangingPassword && (
           <>
             {isAdmin && (
-              <div className="mt-6 p-4 rounded-xl" style={{ background: '#ab83c315' }}>
-                <h3 className="font-semibold mb-2">🎯 Admin Dashboard</h3>
-                <p className="text-sm text-gray-600">Manage your club community</p>
+              <div className="mt-6 p-4 rounded-xl" style={{ background: '#6B4A6315' }}>
+                <h3 className="font-display font-semibold mb-2">🎯 Admin Dashboard</h3>
+                <p className="text-sm text-ink-muted">Manage your club community</p>
               </div>
             )}
 
             {/* Joined Clubs */}
             {joinedClubsData.length > 0 && (
               <div className="mt-6">
-                <h3 className="font-semibold text-left mb-3">Your Communities</h3>
+                <h3 className="font-display font-semibold text-left mb-3">Your Communities</h3>
                 <div className="space-y-2">
                   {joinedClubsData.map(club => (
                     <div
                       key={club._id}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-gray-100"
+                      className="flex items-center gap-3 p-3 rounded-xl border border-cream-dim"
                     >
                       <div
                         className="w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0"
@@ -326,7 +326,7 @@ const ProfileScreen = ({ joinedClubs, clubs }) => {
                       </div>
                       <div className="flex-1 text-left">
                         <h4 className="font-semibold text-sm">{club.name}</h4>
-                        <p className="text-xs text-gray-500">{club.communityMembers} members</p>
+                        <p className="text-xs text-ink-muted">{club.communityMembers} members</p>
                       </div>
                     </div>
                   ))}

@@ -65,10 +65,10 @@ const ThreadCard = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 ${isNested ? 'ml-12 mt-3' : 'mb-4'} ${item.isReported ? 'border-red-200 bg-red-50' : ''}`}>
+    <div className={`bg-cream-card rounded-xl p-4 shadow-sm border border-cream-dim ${isNested ? 'ml-12 mt-3' : ''} ${item.isReported ? 'border-red-200 bg-red-50' : ''}`}>
       <div className="flex items-start gap-3">
         {/* Avatar */}
-        <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0" style={{ background: 'linear-gradient(135deg, #6B4A63 0%, #E8A33D 100%)' }}>
           {item.author?.charAt(0)?.toUpperCase() || '?'}
         </div>
         
@@ -78,14 +78,14 @@ const ThreadCard = ({
           <div className="flex items-center justify-between mb-2">
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-sm text-gray-900">{item.username || item.author || 'Unknown'}</h4>
+                <h4 className="font-semibold text-sm text-ink">{item.username || item.author || 'Unknown'}</h4>
                 {item.isReported && isAdmin && (
                   <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
                     Reported ({item.reports?.length || 0})
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-ink-muted">
                 {reply ? (
                   new Date(reply.createdAt).toLocaleDateString('en-US', { 
                     year: 'numeric', 
@@ -104,13 +104,13 @@ const ThreadCard = ({
             <div className="relative">
               <button 
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1 hover:bg-gray-100 rounded transition"
+                className="p-1 hover:bg-cream-dim rounded transition"
               >
-                <MoreVertical className="w-4 h-4 text-gray-600" />
+                <MoreVertical className="w-4 h-4 text-ink-muted" />
               </button>
               
               {showMenu && (
-                <div className="absolute right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[150px]">
+                <div className="absolute right-0 mt-1 bg-cream-card rounded-lg shadow-lg border border-cream-dim py-1 z-10 min-w-[150px]">
                   {canDelete && (
                     <button
                       onClick={() => {
@@ -130,7 +130,7 @@ const ThreadCard = ({
                         setShowReportModal(true);
                         setShowMenu(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left text-ink-soft hover:bg-cream-dim flex items-center gap-2"
                     >
                       <Flag className="w-4 h-4" />
                       Report
@@ -143,7 +143,7 @@ const ThreadCard = ({
                         // Handle dismiss report
                         setShowMenu(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left text-plum-600 hover:bg-cream-dim flex items-center gap-2"
                     >
                       View Reports
                     </button>
@@ -154,7 +154,7 @@ const ThreadCard = ({
           </div>
           
           {/* Content */}
-          <p className="text-gray-700 mb-3 whitespace-pre-wrap">{item.content}</p>
+          <p className="text-ink-soft mb-3 whitespace-pre-wrap">{item.content}</p>
           
           {/* Actions */}
           <div className="flex items-center gap-4">
@@ -165,7 +165,7 @@ const ThreadCard = ({
                 <button 
                   onClick={onLike}
                   className={`flex items-center gap-1 transition ${
-                    currentIsLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+                    currentIsLiked ? 'text-red-500' : 'text-ink-muted hover:text-red-500'
                   }`}
                 >
                   <Heart className={`w-4 h-4 ${currentIsLiked ? 'fill-current' : ''}`} />
@@ -177,7 +177,7 @@ const ThreadCard = ({
             {!isNested && (
               <button 
                 onClick={() => setShowReplyInput(!showReplyInput)}
-                className="flex items-center gap-1 text-gray-500 hover:text-purple-600 transition"
+                className="flex items-center gap-1 text-ink-muted hover:text-plum-600 transition"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span className="text-sm font-medium">{thread.replies?.length || 0}</span>
@@ -194,13 +194,13 @@ const ThreadCard = ({
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleReplySubmit()}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm"
+                className="flex-1 px-3 py-2 border border-cream-dim bg-cream-card rounded-lg focus:outline-none focus:ring-2 focus:ring-plum-300 text-sm text-ink"
                 disabled={submitting}
               />
               <button 
                 onClick={handleReplySubmit}
                 disabled={!replyText.trim() || submitting}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg font-medium text-sm hover:bg-purple-600 transition disabled:opacity-50"
+                className="px-4 py-2 bg-plum-600 text-white rounded-lg font-medium text-sm hover:bg-plum-700 transition disabled:opacity-50"
               >
                 {submitting ? 'Posting...' : 'Reply'}
               </button>

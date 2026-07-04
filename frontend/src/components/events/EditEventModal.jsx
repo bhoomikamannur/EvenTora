@@ -48,12 +48,12 @@ const EditEventModal = ({ event, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg">
+      <div className="bg-cream-card rounded-2xl w-full max-w-lg">
         <div className="flex items-center justify-between p-6 border-b">
-          <h3 className="text-xl font-bold">Edit Event</h3>
+          <h3 className="text-xl font-display font-semibold text-ink">Edit Event</h3>
           <button 
             onClick={onClose} 
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-2 hover:bg-cream-dim rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -64,7 +64,7 @@ const EditEventModal = ({ event, onClose, onSave }) => {
             value={title} 
             onChange={e => setTitle(e.target.value)} 
             placeholder="Event Name *"
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <textarea 
@@ -72,28 +72,28 @@ const EditEventModal = ({ event, onClose, onSave }) => {
             onChange={e => setDescription(e.target.value)} 
             placeholder="Description"
             rows="3" 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <input 
             value={venue} 
             onChange={e => setVenue(e.target.value)} 
             placeholder="Venue *"
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <input 
             type="date" 
             value={date} 
             onChange={e => setDate(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <input 
             type="time" 
             value={time} 
             onChange={e => setTime(e.target.value)} 
-            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" 
+            className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-plum-300" 
           />
           
           <div className="flex gap-2">
@@ -101,13 +101,13 @@ const EditEventModal = ({ event, onClose, onSave }) => {
               onClick={handleSave} 
               disabled={loading}
               className="flex-1 py-3 rounded-xl font-semibold text-white disabled:opacity-50 transition" 
-              style={{ background: '#ab83c3' }}
+              style={{ background: '#6B4A63' }}
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>
             <button 
               onClick={onClose} 
-              className="flex-1 py-3 rounded-xl font-semibold border hover:bg-gray-50 transition"
+              className="flex-1 py-3 rounded-xl font-semibold border hover:bg-cream-dim transition"
             >
               Cancel
             </button>

@@ -46,13 +46,13 @@ const PostCommentsModal = ({ post, isOpen, onClose, onUpdate }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="bg-cream-card rounded-3xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold">Comments</h2>
+        <div className="flex items-center justify-between p-4 border-b border-cream-dim">
+          <h2 className="text-xl font-display font-semibold text-ink">Comments</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-cream-dim rounded-lg transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -62,23 +62,23 @@ const PostCommentsModal = ({ post, isOpen, onClose, onUpdate }) => {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {comments && comments.length > 0 ? (
             comments.map((comment) => (
-              <div key={comment._id} className="bg-gray-50 rounded-xl p-3">
+              <div key={comment._id} className="bg-cream-dim/50 rounded-xl p-3">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="font-semibold text-sm text-gray-900">
+                    <p className="font-semibold text-sm text-ink">
                       {comment.username || 'Anonymous'}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-ink-muted">
                       {new Date(comment.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-700">{comment.text}</p>
+                <p className="text-sm text-ink-soft">{comment.text}</p>
               </div>
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 text-sm">No comments yet. Be the first!</p>
+              <p className="text-ink-muted text-sm">No comments yet. Be the first!</p>
             </div>
           )}
         </div>
@@ -91,20 +91,20 @@ const PostCommentsModal = ({ post, isOpen, onClose, onUpdate }) => {
         )}
 
         {/* Comment Input */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-cream-dim p-4">
           <form onSubmit={handleAddComment} className="flex gap-2">
             <input
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a comment..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              className="flex-1 px-4 py-2 border border-cream-dim bg-cream-card text-ink rounded-full focus:outline-none focus:ring-2 focus:ring-plum-300 text-sm"
               disabled={loading}
             />
             <button
               type="submit"
               disabled={loading}
-              className="p-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition disabled:opacity-50"
+              className="p-2 bg-plum-600 text-white rounded-full hover:bg-plum-700 transition disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </button>

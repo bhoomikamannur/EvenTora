@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 
-const FloatingActionButton = ({ onClick, color = '#ab83c3', tooltip = 'Add' }) => {
+const FloatingActionButton = ({ onClick, color = '#6B4A63', tooltip = 'Add' }) => {
   const [rightPosition, setRightPosition] = useState('auto');
 
   useEffect(() => {
