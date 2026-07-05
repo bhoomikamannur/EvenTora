@@ -63,6 +63,13 @@ exports.createMedia = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
 
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only manage media for the community you administer');
+    }
+
     // Validate title
     if (title.trim().length < 2 || title.trim().length > 200) {
       return ApiResponse.badRequest(res, 'Media title must be between 2 and 200 characters');
@@ -129,6 +136,13 @@ exports.updateMedia = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.MEDIA_NOT_FOUND);
     }
 
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only manage media for the community you administer');
+    }
+
     // Validate fields if provided
     if (req.body.title && (req.body.title.trim().length < 2 || req.body.title.trim().length > 200)) {
       return ApiResponse.badRequest(res, 'Media title must be between 2 and 200 characters');
@@ -180,6 +194,13 @@ exports.deleteMedia = async (req, res, next) => {
 
     if (!validators.validateObjectId(id)) {
       return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only manage media for the community you administer');
     }
 
     const media = await Media.findOneAndDelete({

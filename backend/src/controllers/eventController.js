@@ -102,6 +102,15 @@ exports.createEvent = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
 
+    // A club admin may only post events for the club they manage;
+    // organizers can post for any club.
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only add events for the community you manage');
+    }
+
     // Validate date format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return ApiResponse.badRequest(res, 'Invalid date format (use YYYY-MM-DD)');
@@ -157,6 +166,13 @@ exports.updateEvent = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.EVENT_NOT_FOUND);
     }
 
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== event.clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only edit events for the community you manage');
+    }
+
     // Validate fields if provided
     if (req.body.date && !/^\d{4}-\d{2}-\d{2}$/.test(req.body.date)) {
       return ApiResponse.badRequest(res, 'Invalid date format (use YYYY-MM-DD)');
@@ -208,11 +224,20 @@ exports.deleteEvent = async (req, res, next) => {
       return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
     }
 
-    const event = await Event.findByIdAndDelete(id);
-    
+    const event = await Event.findById(id);
+
     if (!event) {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.EVENT_NOT_FOUND);
     }
+
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== event.clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only delete events for the community you manage');
+    }
+
+    await Event.findByIdAndDelete(id);
     
     return ApiResponse.success(res, {}, ERROR_MESSAGES.OPERATIONS.DELETE_SUCCESS);
   } catch (error) {
@@ -238,7 +263,11 @@ exports.rsvpEvent = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.EVENT_NOT_FOUND);
     }
 
-    // Club admins cannot RSVP to events posted by their own club
+    // Club admins cannot RSVP to events posted by their own club, and
+    // organizers — who oversee every club — cannot RSVP to any event
+    if (user.userType === 'organizer') {
+      return ApiResponse.forbidden(res, 'Organizers cannot RSVP to events');
+    }
     if (
       user.userType === 'admin' &&
       user.adminClubId &&

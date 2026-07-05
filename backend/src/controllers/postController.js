@@ -27,7 +27,7 @@ exports.getAllPosts = async (req, res, next) => {
     const total = await Post.countDocuments(query);
     const posts = await Post.find(query)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email name')
+      .populate('authorId', 'username email name avatar')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
@@ -51,7 +51,7 @@ exports.getPostById = async (req, res, next) => {
 
     const post = await Post.findById(id)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email name');
+      .populate('authorId', 'username email name avatar');
     
     if (!post) {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.POST_NOT_FOUND);
@@ -133,7 +133,7 @@ exports.createPost = async (req, res, next) => {
 
     const populatedPost = await Post.findById(post._id)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email name');
+      .populate('authorId', 'username email name avatar');
     
     return ApiResponse.created(res, populatedPost, ERROR_MESSAGES.OPERATIONS.CREATE_SUCCESS);
   } catch (error) {
@@ -162,8 +162,13 @@ exports.updatePost = async (req, res, next) => {
     // Check authorization
     const postAuthorId = post.authorId.toString();
     const currentUserId = req.user._id.toString();
+    const isOrganizer = req.user.userType === 'organizer';
+    const isClubAdmin =
+      req.user.userType === 'admin' &&
+      req.user.adminClubId &&
+      req.user.adminClubId.toString() === post.clubId.toString();
     
-    if (postAuthorId !== currentUserId && req.user.userType !== 'admin') {
+    if (postAuthorId !== currentUserId && !isOrganizer && !isClubAdmin) {
       return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_UPDATE);
     }
 
@@ -197,7 +202,7 @@ exports.updatePost = async (req, res, next) => {
       req.body,
       { new: true, runValidators: true }
     ).populate('clubId', 'name logo color')
-      .populate('authorId', 'username email name');
+      .populate('authorId', 'username email name avatar');
     
     return ApiResponse.success(res, updatedPost, ERROR_MESSAGES.OPERATIONS.UPDATE_SUCCESS);
   } catch (error) {
@@ -225,8 +230,13 @@ exports.deletePost = async (req, res, next) => {
     // Check authorization
     const postAuthorId = post.authorId.toString();
     const currentUserId = req.user._id.toString();
+    const isOrganizer = req.user.userType === 'organizer';
+    const isClubAdmin =
+      req.user.userType === 'admin' &&
+      req.user.adminClubId &&
+      req.user.adminClubId.toString() === post.clubId.toString();
     
-    if (postAuthorId !== currentUserId && req.user.userType !== 'admin') {
+    if (postAuthorId !== currentUserId && !isOrganizer && !isClubAdmin) {
       return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_DELETE);
     }
 
@@ -277,7 +287,7 @@ exports.likePost = async (req, res, next) => {
     // Return full post with populated data for UI consistency
     const updatedPost = await Post.findById(post._id)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email name')
+      .populate('authorId', 'username email name avatar')
       .populate('likedBy', 'username name');
     
     return ApiResponse.success(res, 
@@ -331,7 +341,7 @@ exports.addComment = async (req, res, next) => {
     
     const updatedPost = await Post.findById(id)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email name');
+      .populate('authorId', 'username email name avatar');
     
     return ApiResponse.success(res, updatedPost, 'Comment added successfully');
   } catch (error) {
@@ -365,7 +375,7 @@ exports.deleteComment = async (req, res, next) => {
 
     const updatedPost = await Post.findById(postId)
       .populate('clubId', 'name logo color')
-      .populate('authorId', 'username email name');
+      .populate('authorId', 'username email name avatar');
 
     return ApiResponse.success(res, updatedPost, 'Comment deleted successfully');
 

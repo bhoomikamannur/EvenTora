@@ -2,6 +2,7 @@ import React from 'react';
 import PostCard from '../components/posts/PostCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import AnnouncementEventCard from '../components/events/AnnouncementEventCard';
+import ClubLogo from '../components/common/ClubLogo';
 
 const HomeScreen = ({ 
   posts, 
@@ -32,12 +33,7 @@ const HomeScreen = ({
               onClick={() => onClubClick(club._id)}
               className="flex flex-col items-center gap-2 min-w-[80px] hover:opacity-80 transition"
             >
-              <div 
-                className="w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-lg" 
-                style={{ background: club.color }}
-              >
-                {club.logo}
-              </div>
+              <ClubLogo club={club} size={64} className="shadow-lg text-2xl" />
               <span className="text-xs font-medium text-center text-ink-soft">{club.name}</span>
             </button>
           ))}

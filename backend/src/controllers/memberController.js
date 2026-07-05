@@ -61,6 +61,13 @@ exports.addMember = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.CLUB_NOT_FOUND);
     }
 
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only manage members for the community you administer');
+    }
+
     // Validate name
     if (name.trim().length < 2 || name.trim().length > 100) {
       return ApiResponse.badRequest(res, 'Member name must be between 2 and 100 characters');
@@ -127,6 +134,13 @@ exports.updateMember = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.MEMBER_NOT_FOUND);
     }
 
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only manage members for the community you administer');
+    }
+
     // Validate fields if provided
     if (req.body.name && (req.body.name.trim().length < 2 || req.body.name.trim().length > 100)) {
       return ApiResponse.badRequest(res, 'Member name must be between 2 and 100 characters');
@@ -189,6 +203,13 @@ exports.deleteMember = async (req, res, next) => {
 
     if (!validators.validateObjectId(id)) {
       return ApiResponse.badRequest(res, ERROR_MESSAGES.VALIDATION.INVALID_OBJECT_ID);
+    }
+
+    if (
+      req.user.userType === 'admin' &&
+      (!req.user.adminClubId || req.user.adminClubId.toString() !== clubId.toString())
+    ) {
+      return ApiResponse.forbidden(res, 'You can only manage members for the community you administer');
     }
 
     const member = await Member.findOneAndDelete({

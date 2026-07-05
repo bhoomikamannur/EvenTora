@@ -19,6 +19,10 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     console.log('📤 Request:', config.method?.toUpperCase(), config.url); // Debug log
     return config;
   },

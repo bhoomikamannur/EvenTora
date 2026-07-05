@@ -46,10 +46,10 @@ const LoginScreen = () => {
         </h1>
         <p className="text-center text-ink-muted mb-8">College Communities Hub</p>
         
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-3 mb-6">
           <button 
             onClick={() => setUserType('student')} 
-            className={`flex-1 py-3 rounded-xl font-semibold transition ${
+            className={`flex-1 py-3 rounded-xl font-semibold transition text-sm ${
               userType === 'student' ? 'text-white' : 'bg-cream-dim text-ink-muted'
             }`}
             style={userType === 'student' ? { background: '#6B4A63' } : {}}
@@ -58,12 +58,21 @@ const LoginScreen = () => {
           </button>
           <button 
             onClick={() => setUserType('admin')} 
-            className={`flex-1 py-3 rounded-xl font-semibold transition ${
+            className={`flex-1 py-3 rounded-xl font-semibold transition text-sm ${
               userType === 'admin' ? 'text-white' : 'bg-cream-dim text-ink-muted'
             }`}
             style={userType === 'admin' ? { background: '#D8A13A' } : {}}
           >
             Admin
+          </button>
+          <button 
+            onClick={() => setUserType('organizer')} 
+            className={`flex-1 py-3 rounded-xl font-semibold transition text-sm ${
+              userType === 'organizer' ? 'text-white' : 'bg-cream-dim text-ink-muted'
+            }`}
+            style={userType === 'organizer' ? { background: '#7A9B76' } : {}}
+          >
+            Organizer
           </button>
         </div>
 
@@ -76,7 +85,7 @@ const LoginScreen = () => {
         <div className="space-y-4">
           <input 
             type="email" 
-            placeholder={userType === 'student' ? 'College Email' : 'Club Email'}
+            placeholder={userType === 'student' ? 'College Email' : userType === 'organizer' ? 'Organizer Email' : 'Club Email'}
             value={email} 
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-4 border-2 border-cream-dim rounded-xl focus:outline-none focus:border-plum-300" 

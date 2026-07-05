@@ -32,6 +32,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Full name is required']
   },
+  // Optional profile photo. When not set, the UI falls back to showing
+  // the first letter of the user's name instead.
+  avatar: {
+    type: String,
+    default: null
+  },
   userType: {
     type: String,
     enum: ['student', 'admin', 'organizer'],

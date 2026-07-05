@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Trash2, Flag, MoreVertical } from 'lucide-react';
 import ReportModal from './ReportModal';
 import ViewReportsModal from './ViewReportsModal';
+import UserAvatar from '../common/UserAvatar';
 
 const ThreadCard = ({ 
   thread, 
@@ -71,9 +72,7 @@ const ThreadCard = ({
     <div className={`bg-cream-card rounded-xl p-4 shadow-sm border border-cream-dim ${isNested ? 'ml-12 mt-3' : ''} ${item.isReported ? 'border-red-200 bg-red-50' : ''}`}>
       <div className="flex items-start gap-3">
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0" style={{ background: 'linear-gradient(135deg, #6B4A63 0%, #E8A33D 100%)' }}>
-          {item.author?.charAt(0)?.toUpperCase() || '?'}
-        </div>
+        <UserAvatar name={item.author} avatar={item.userId?.avatar} size={40} />
         
         {/* Content */}
         <div className="flex-1 min-w-0">

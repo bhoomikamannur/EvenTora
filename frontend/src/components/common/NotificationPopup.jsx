@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import ClubLogo from './ClubLogo';
 
 const NotificationPopup = ({ notifications, onNotificationClick, onClose }) => {
   return (
@@ -26,7 +27,7 @@ const NotificationPopup = ({ notifications, onNotificationClick, onClose }) => {
               className="w-full p-4 text-left hover:bg-cream-dim transition flex flex-col gap-1"
             >
               <div className="flex items-center gap-2">
-                <span className="text-lg">{notif.clubLogo}</span>
+                <ClubLogo club={{ logo: notif.clubLogo, color: notif.clubColor, name: notif.clubName }} size={20} />
                 <span className="font-semibold text-sm text-ink">{notif.clubName}</span>
               </div>
               <p className="text-xs text-ink-muted line-clamp-2">{notif.title}</p>

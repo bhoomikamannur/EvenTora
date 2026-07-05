@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Plus } from 'lucide-react';
+import ClubLogo from '../components/common/ClubLogo';
 import PostCard from '../components/posts/PostCard';
 import EventCard from '../components/events/EventCard';
 import MemberCard from '../components/members/MemberCard';
@@ -342,11 +343,8 @@ const CommunityScreen = ({
             <ChevronLeft className="w-6 h-6" />
           </button>
         </div>
-        <div 
-          className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-24 rounded-full shadow-lg flex items-center justify-center text-5xl border-4 border-white" 
-          style={{ background: club.color }}
-        >
-          {club.logo}
+        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 border-4 border-white rounded-full shadow-lg">
+          <ClubLogo club={club} size={96} className="text-5xl" />
         </div>
       </div>
 

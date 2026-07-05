@@ -38,8 +38,8 @@ exports.getClubThreads = async (req, res, next) => {
     console.log('📊 Total threads in club:', total);
 
     const threads = await Thread.find({ clubId })
-      .populate('userId', 'name username email')
-      .populate('replies.userId', 'name username email')
+      .populate('userId', 'name username email avatar')
+      .populate('replies.userId', 'name username email avatar')
       .populate('likedBy', '_id')
       .populate('replies.likedBy', '_id')
       .sort({ createdAt: -1 })
@@ -84,8 +84,8 @@ exports.getReportedThreads = async (req, res, next) => {
       clubId,
       isReported: true 
     })
-      .populate('userId', 'name username email')
-      .populate('replies.userId', 'name username email')
+      .populate('userId', 'name username email avatar')
+      .populate('replies.userId', 'name username email avatar')
       .populate('likedBy', '_id')
       .populate('replies.likedBy', '_id')
       .sort({ createdAt: -1 })
@@ -135,9 +135,9 @@ exports.createThread = async (req, res, next) => {
     });
     
     const populatedThread = await Thread.findById(thread._id)
-      .populate('userId', 'name username email')
+      .populate('userId', 'name username email avatar')
       .populate('likedBy', '_id')
-      .populate('replies.userId', 'name username email');
+      .populate('replies.userId', 'name username email avatar');
     
     console.log('✅ Thread created:', {
       id: populatedThread._id,
@@ -186,9 +186,9 @@ exports.likeThread = async (req, res, next) => {
 
     // Return full thread with populated data for UI consistency
     const updatedThread = await Thread.findById(thread._id)
-      .populate('userId', 'username name')
+      .populate('userId', 'username name avatar')
       .populate('likedBy', 'username name')
-      .populate('replies.userId', 'username name')
+      .populate('replies.userId', 'username name avatar')
       .populate('replies.likedBy', 'username name');
     
     return ApiResponse.success(res, 
@@ -243,8 +243,8 @@ exports.addReply = async (req, res, next) => {
     await thread.save();
     
     const populatedThread = await Thread.findById(thread._id)
-      .populate('userId', 'name username email')
-      .populate('replies.userId', 'name username email')
+      .populate('userId', 'name username email avatar')
+      .populate('replies.userId', 'name username email avatar')
       .populate('likedBy', '_id')
       .populate('replies.likedBy', '_id');
     
@@ -304,9 +304,9 @@ exports.likeReply = async (req, res, next) => {
     
     // Return full thread with populated data for UI consistency
     const updatedThread = await Thread.findById(threadId)
-      .populate('userId', 'username name')
+      .populate('userId', 'username name avatar')
       .populate('likedBy', 'username name')
-      .populate('replies.userId', 'username name')
+      .populate('replies.userId', 'username name avatar')
       .populate('replies.likedBy', 'username name');
     
     return ApiResponse.success(res,
@@ -458,9 +458,14 @@ exports.deleteThread = async (req, res, next) => {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.THREAD_NOT_FOUND);
     }
     
-    // Check if user is author or admin
+    // Check if user is author or has moderation rights over this club
     const isAuthor = thread.userId.toString() === req.user._id.toString();
-    const isAdmin = req.user.userType === 'admin';
+    const isOrganizer = req.user.userType === 'organizer';
+    const isClubAdmin =
+      req.user.userType === 'admin' &&
+      req.user.adminClubId &&
+      req.user.adminClubId.toString() === thread.clubId.toString();
+    const isAdmin = isOrganizer || isClubAdmin;
     
     if (!isAuthor && !isAdmin) {
       return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_DELETE);
@@ -504,9 +509,14 @@ exports.deleteReply = async (req, res, next) => {
       return ApiResponse.notFound(res, 'Reply not found');
     }
     
-    // Check if user is author or admin
+    // Check if user is author or has moderation rights over this club
     const isAuthor = reply.userId.toString() === req.user._id.toString();
-    const isAdmin = req.user.userType === 'admin';
+    const isOrganizer = req.user.userType === 'organizer';
+    const isClubAdmin =
+      req.user.userType === 'admin' &&
+      req.user.adminClubId &&
+      req.user.adminClubId.toString() === thread.clubId.toString();
+    const isAdmin = isOrganizer || isClubAdmin;
     
     if (!isAuthor && !isAdmin) {
       return ApiResponse.forbidden(res, ERROR_MESSAGES.AUTH.NOT_AUTHORIZED_DELETE);
@@ -539,6 +549,16 @@ exports.dismissReport = async (req, res, next) => {
     
     if (!thread) {
       return ApiResponse.notFound(res, ERROR_MESSAGES.RESOURCES.THREAD_NOT_FOUND);
+    }
+
+    const isOrganizer = req.user.userType === 'organizer';
+    const isClubAdmin =
+      req.user.userType === 'admin' &&
+      req.user.adminClubId &&
+      req.user.adminClubId.toString() === thread.clubId.toString();
+
+    if (!isOrganizer && !isClubAdmin) {
+      return ApiResponse.forbidden(res, 'You can only moderate reports in the community you manage');
     }
     
     thread.reports = [];
@@ -576,6 +596,16 @@ exports.dismissReplyReport = async (req, res, next) => {
 
     if (!reply) {
       return ApiResponse.notFound(res, 'Reply not found');
+    }
+
+    const isOrganizer = req.user.userType === 'organizer';
+    const isClubAdmin =
+      req.user.userType === 'admin' &&
+      req.user.adminClubId &&
+      req.user.adminClubId.toString() === thread.clubId.toString();
+
+    if (!isOrganizer && !isClubAdmin) {
+      return ApiResponse.forbidden(res, 'You can only moderate reports in the community you manage');
     }
 
     reply.reports = [];

@@ -15,7 +15,7 @@ const generateToken = (id) => {
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { email, password, username, name, userType, adminClubId } = req.body;
+    const { email, password, username, name } = req.body;
 
     // Validate required fields
     if (!email || !password || !username || !name) {
@@ -92,13 +92,18 @@ exports.register = async (req, res, next) => {
     }
 
     // Create user
+    // Public self-registration is always a plain student account.
+    // Admin accounts are only ever created by an organizer (as part of
+    // creating a club), and organizer accounts aren't self-serve at all —
+    // both bypass this endpoint entirely, so there's no userType/adminClubId
+    // to trust from the request body here.
     const user = await User.create({
       email: email.toLowerCase(),
       password,
       username: username.toLowerCase(),
       name: name.trim(),
-      userType: userType || 'student',
-      adminClubId: userType === 'admin' ? adminClubId : null
+      userType: 'student',
+      adminClubId: null
     });
 
     // Return user data with token
@@ -112,6 +117,7 @@ exports.register = async (req, res, next) => {
         email: user.email,
         userType: user.userType,
         adminClubId: user.adminClubId,
+        avatar: user.avatar,
         token: generateToken(user._id)
       },
       timestamp: new Date().toISOString()
@@ -195,6 +201,7 @@ exports.login = async (req, res, next) => {
         email: user.email,
         userType: user.userType,
         adminClubId: user.adminClubId,
+        avatar: user.avatar,
         joinedClubs: user.joinedClubs,
         likedPosts: user.likedPosts,
         rsvpEvents: user.rsvpEvents,
@@ -349,6 +356,15 @@ exports.updateProfile = async (req, res, next) => {
       user.password = req.body.password;
     }
 
+    // A newly uploaded photo replaces the old one. Sending
+    // removeAvatar=true (with no file) clears it back to the
+    // initials-based fallback.
+    if (req.file) {
+      user.avatar = req.file.path;
+    } else if (req.body.removeAvatar === 'true') {
+      user.avatar = null;
+    }
+
     const updatedUser = await user.save();
 
     res.status(HTTP_STATUS.OK).json({
@@ -360,6 +376,8 @@ exports.updateProfile = async (req, res, next) => {
         username: updatedUser.username,
         email: updatedUser.email,
         userType: updatedUser.userType,
+        adminClubId: updatedUser.adminClubId,
+        avatar: updatedUser.avatar,
         token: generateToken(updatedUser._id)
       },
       timestamp: new Date().toISOString()
@@ -437,6 +455,7 @@ exports.googleAuth = async (req, res, next) => {
         email: user.email,
         userType: user.userType,
         adminClubId: user.adminClubId,
+        avatar: user.avatar,
         joinedClubs: user.joinedClubs,
         likedPosts: user.likedPosts,
         rsvpEvents: user.rsvpEvents,

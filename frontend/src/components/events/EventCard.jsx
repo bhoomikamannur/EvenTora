@@ -1,5 +1,6 @@
 import React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
+import ClubLogo from '../common/ClubLogo';
 
 const EventCard = ({ event, onRSVP, onCancelRSVP, hasRSVPd, onDelete, isAdmin, onEdit }) => {
   const club = event.clubId;
@@ -7,12 +8,7 @@ const EventCard = ({ event, onRSVP, onCancelRSVP, hasRSVPd, onDelete, isAdmin, o
   return (
     <div className="bg-cream-card rounded-2xl shadow-sm border border-cream-dim p-6 mb-4">
       <div className="flex items-start gap-4 mb-4">
-        <div 
-          className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
-          style={{ background: club?.color }}
-        >
-          {club?.logo}
-        </div>
+        <ClubLogo club={club} size={64} rounded="rounded-xl" className="text-3xl" />
         
         <div className="flex-1 min-w-0">
           <h3 className="font-display font-semibold text-xl mb-1 text-ink">{event.title}</h3>

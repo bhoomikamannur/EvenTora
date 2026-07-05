@@ -1,4 +1,5 @@
 import React from 'react';
+import ClubLogo from '../common/ClubLogo';
 
 const AnnouncementEventCard = ({ event, club, onClick }) => {
   return (
@@ -8,7 +9,7 @@ const AnnouncementEventCard = ({ event, club, onClick }) => {
       style={{ background: `${club?.color || '#6B4A63'}15` }}
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-lg">{club?.logo || '📅'}</span>
+        <ClubLogo club={club} size={22} />
         <span className="font-semibold text-sm text-ink">{club?.name || 'Unknown Club'}</span>
         {event.isAcademic && (
           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">

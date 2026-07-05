@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Edit2, Check, X, Users, CalendarCheck, TrendingUp } from 'lucide-react';
+import { LogOut, Edit2, Check, X, Users, CalendarCheck, TrendingUp, Upload } from 'lucide-react';
 import ApiService from '../services/api';
+import ClubLogo from '../components/common/ClubLogo';
+import UserAvatar from '../components/common/UserAvatar';
 
-const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
+const ProfileScreen = ({ joinedClubs, clubs, events = [], onUpdateClub }) => {
   const { user, isAdmin, logout, loadUser } = useAuth();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -11,6 +13,16 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
     name: user?.name || '',
     username: user?.username || ''
   });
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || null);
+
+  // Analytics for the club this user administers (if any)
+  const adminClub = isAdmin ? clubs.find(c => c._id === user?.adminClubId) : null;
+
+  const [clubEditData, setClubEditData] = useState({
+    color: adminClub?.color || '#ab83c3'
+  });
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -22,8 +34,6 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
 
   const joinedClubsData = clubs.filter(c => joinedClubs.includes(c._id));
 
-  // Analytics for the club this user administers (if any)
-  const adminClub = isAdmin ? clubs.find(c => c._id === user?.adminClubId) : null;
   const adminClubEvents = adminClub
     ? events
         .filter(e => {
@@ -41,6 +51,13 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
       [name]: value
     }));
     setError('');
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
   };
 
   const handlePasswordChange = (e) => {
@@ -95,14 +112,42 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
 
     setLoading(true);
     try {
-      const response = await ApiService.updateProfile({
-        name: editData.name,
-        username: editData.username
-      });
+      // Personal profile (name, username, optional new photo)
+      const formData = new FormData();
+      formData.append('name', editData.name);
+      formData.append('username', editData.username);
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+      }
+
+      const response = await ApiService.updateProfile(formData);
+
+      // If this admin also edited their club's color (or uploaded a new
+      // photo, which doubles as the club logo), save that too
+      if (isAdmin && adminClub && onUpdateClub) {
+        const clubChanged = avatarFile || clubEditData.color !== (adminClub.color || '#ab83c3');
+        if (clubChanged) {
+          const clubFormData = new FormData();
+          clubFormData.append('name', adminClub.name);
+          clubFormData.append('type', adminClub.type);
+          clubFormData.append('description', adminClub.description || '');
+          clubFormData.append('color', clubEditData.color);
+          if (avatarFile) {
+            clubFormData.append('logo', avatarFile);
+          }
+          const clubResult = await onUpdateClub(adminClub._id, clubFormData);
+          if (!clubResult.success) {
+            setError(clubResult.error || 'Profile saved, but failed to update club details');
+            setLoading(false);
+            return;
+          }
+        }
+      }
 
       if (response.data) {
         setSuccess('Profile updated successfully');
         setIsEditingProfile(false);
+        setAvatarFile(null);
         // Refresh user data from server
         await loadUser();
         setTimeout(() => setSuccess(''), 3000);
@@ -143,9 +188,27 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
   return (
     <div className="bg-cream-card rounded-2xl shadow-sm border border-cream-dim p-6">
       <div className="text-center">
-        <div className="w-24 h-24 bg-gradient-to-br from-plum-500 to-amber-400 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
-          👤
-        </div>
+        {isEditingProfile ? (
+          <label className="relative inline-block cursor-pointer mb-4 group">
+            <UserAvatar
+              user={user}
+              avatar={avatarPreview}
+              size={96}
+              className="mx-auto"
+            />
+            <div className="absolute inset-0 rounded-full bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition">
+              <Upload className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition" />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+          </label>
+        ) : (
+          <UserAvatar user={user} size={96} className="mx-auto mb-4" />
+        )}
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
@@ -194,6 +257,11 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
         ) : isEditingProfile ? (
           <div className="space-y-4 text-left">
             <h3 className="font-display font-semibold text-lg text-center mb-4">Edit Profile</h3>
+            <p className="text-xs text-ink-muted text-center -mt-3 mb-2">
+              {isAdmin && adminClub
+                ? "Tap your photo above to change it — this also updates your club's logo."
+                : 'Tap your photo above to change it. No photo? Your initial is shown instead.'}
+            </p>
 
             <div>
               <label className="block text-sm font-semibold text-ink-soft mb-2">
@@ -225,9 +293,38 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
               </p>
             </div>
 
+            {isAdmin && adminClub && (
+              <div className="pt-3 border-t border-cream-dim">
+                <p className="text-sm font-semibold text-ink mb-1">
+                  {adminClub.name} Branding
+                </p>
+                <p className="text-xs text-ink-muted mb-3">
+                  Your photo above doubles as the club logo — upload a new one there to update both at once.
+                </p>
+
+                <div className="flex items-center gap-4">
+                  <ClubLogo club={adminClub} size={56} />
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm font-semibold text-ink-soft">Club Color</label>
+                    <input
+                      type="color"
+                      value={clubEditData.color}
+                      onChange={(e) => setClubEditData({ color: e.target.value })}
+                      className="w-12 h-10 rounded-lg border cursor-pointer"
+                    />
+                    <span className="text-sm text-ink-muted">{clubEditData.color}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
-                onClick={() => setIsEditingProfile(false)}
+                onClick={() => {
+                  setIsEditingProfile(false);
+                  setAvatarFile(null);
+                  setAvatarPreview(user?.avatar || null);
+                }}
                 disabled={loading}
                 className="flex-1 py-3 rounded-lg font-semibold bg-cream-dim text-ink-soft flex items-center justify-center gap-2 hover:bg-plum-50 transition disabled:opacity-50"
               >
@@ -318,8 +415,9 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
                 <h3 className="font-display font-semibold mb-1 flex items-center gap-2">
                   🎯 Admin Dashboard
                 </h3>
-                <p className="text-sm text-ink-muted mb-4">
-                  Analytics for {adminClub.logo} {adminClub.name}
+                <p className="text-sm text-ink-muted mb-4 flex items-center gap-2">
+                  <ClubLogo club={adminClub} size={20} />
+                  Analytics for {adminClub.name}
                 </p>
 
                 <div className="grid grid-cols-3 gap-3 mb-4">
@@ -385,12 +483,7 @@ const ProfileScreen = ({ joinedClubs, clubs, events = [] }) => {
                       key={club._id}
                       className="flex items-center gap-3 p-3 rounded-xl border border-cream-dim"
                     >
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-                        style={{ background: club.color }}
-                      >
-                        {club.logo}
-                      </div>
+                      <ClubLogo club={club} size={48} className="text-xl" />
                       <div className="flex-1 text-left">
                         <h4 className="font-semibold text-sm">{club.name}</h4>
                         <p className="text-xs text-ink-muted">{club.communityMembers} members</p>

@@ -68,12 +68,55 @@ export const useClubs = () => {
     }
   };
 
+  const createClub = async (formData) => {
+    try {
+      const response = await ApiService.createClub(formData);
+      await fetchClubs();
+      return { success: true, data: response.data?.data || response.data };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Failed to create club'
+      };
+    }
+  };
+
+  const updateClub = async (clubId, formData) => {
+    try {
+      const response = await ApiService.updateClub(clubId, formData);
+      const updated = response.data?.data || response.data;
+      setClubs(prev => prev.map(c => (c._id === clubId ? updated : c)));
+      return { success: true, data: updated };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Failed to update club'
+      };
+    }
+  };
+
+  const deleteClub = async (clubId) => {
+    try {
+      await ApiService.deleteClub(clubId);
+      setClubs(prev => prev.filter(c => c._id !== clubId));
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Failed to delete club'
+      };
+    }
+  };
+
   return {
     clubs,
     loading,
     error,
     joinClub,
     leaveClub,
+    createClub,
+    updateClub,
+    deleteClub,
     refetch: fetchClubs
   };
 };

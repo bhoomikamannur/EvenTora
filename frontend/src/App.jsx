@@ -17,7 +17,7 @@ import ApiService from './services/api';
 import socket from './config/socket';
 
 const AppContent = () => {
-  const { user, isAuthenticated, isAdmin, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, isAdmin, isOrganizer, loading: authLoading } = useAuth();
   
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
@@ -33,7 +33,7 @@ const AppContent = () => {
   // Use custom hooks
   const { posts, loading: postsLoading, createPost, updatePost, deletePost, likePost, refetch: refetchPosts } = usePosts();
   const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent, rsvpEvent, cancelRsvpEvent, applyRsvpBroadcast, refetch: refetchEvents } = useEvents();
-  const { clubs, loading: clubsLoading, joinClub, leaveClub } = useClubs();
+  const { clubs, loading: clubsLoading, joinClub, leaveClub, createClub, updateClub, deleteClub } = useClubs();
 
   // Load user data on mount
   useEffect(() => {
@@ -287,6 +287,7 @@ const AppContent = () => {
             clubId: postClubId,
             clubName: club.name,
             clubLogo: club.logo,
+            clubColor: club.color,
             resourceId: post._id,
             resourceType: 'post'
           });
@@ -310,6 +311,7 @@ const AppContent = () => {
             clubId: eventClubId,
             clubName: club.name,
             clubLogo: club.logo,
+            clubColor: club.color,
             resourceId: event._id,
             resourceType: 'event'
           });
@@ -380,7 +382,8 @@ const AppContent = () => {
             onRSVP={handleRSVPEvent}
             onCancelRSVP={handleCancelRSVP}
             rsvpEvents={rsvpEvents}
-            isAdmin={isAdmin && user?.adminClubId === selectedClub}
+            isAdmin={isOrganizer || (isAdmin && user?.adminClubId === selectedClub)}
+            isOrganizer={isOrganizer}
             onPostCreated={handlePostCreated}
             onPostUpdated={handlePostUpdated}
             onPostDeleted={handlePostDeleted}
@@ -414,6 +417,10 @@ const AppContent = () => {
                 onClubClick={setSelectedClub}
                 joinedClubs={joinedClubs}
                 loading={loading}
+                isOrganizer={isOrganizer}
+                onCreateClub={createClub}
+                onUpdateClub={updateClub}
+                onDeleteClub={deleteClub}
               />
             )}
 
@@ -433,6 +440,7 @@ const AppContent = () => {
                 joinedClubs={joinedClubs}
                 clubs={clubs}
                 events={events}
+                onUpdateClub={updateClub}
               />
             )}
           </>

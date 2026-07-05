@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Share2, Edit2, Trash2 } from 'lucide-react';
 import CommentSection from './CommentSection';
+import ClubLogo from '../common/ClubLogo';
 import { getImageUrl } from '../../utils/helpers';
 
 const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }) => {
@@ -27,12 +28,7 @@ const PostCard = ({ post, onLike, isLiked, onDelete, onEdit, isAdmin, onUpdate }
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
-              style={{ background: club?.color }}
-            >
-              {club?.logo}
-            </div>
+            <ClubLogo club={club} size={48} className="text-2xl" />
             <div>
               <h4 className="font-semibold text-ink">{post.author}</h4>
               <p className="text-xs text-ink-muted">
